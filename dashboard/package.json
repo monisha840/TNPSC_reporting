@@ -1,0 +1,27 @@
+{
+  "name": "tnpsc-mentors-growth-dashboard",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Internal read-only growth & product health audit dashboard for TNPSC Mentors. Reporting artefact — contains no production credentials and connects to no production system.",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit"
+  },
+  "engines": {
+    "node": ">=18.18"
+  },
+  "dependencies": {
+    "next": "^16.3.4",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8"
+  },
+  "devDependencies": {
+    "@types/node": "^26.4.1",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.7",
+    "typescript": "^7.0.2"
+  }
+}

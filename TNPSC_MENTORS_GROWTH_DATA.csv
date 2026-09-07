@@ -1,0 +1,522 @@
+﻿dataset,metric,value,calculation,evidence,status,source,note
+audit_context,Product,TNPSC Mentors,,,,,
+audit_context,Audit period start,14 Jun 2026,,,,,
+audit_context,Audit period end,5 Sep 2026,,,,,
+audit_context,Production snapshot,"5 Sep 2026, 19:01 IST (read-only SELECT)",,PROD,,,read-only SELECT
+audit_context,Compiled,7 Sep 2026,,,,,
+audit_context,Platform age (days),83,2026-06-14 to 2026-09-05,PROD,ACTUAL,,"83 days measured 2026-06-14 → 2026-09-05, the timestamped production snapshot. The acquisition-trend query extends slightly past that date; see the reconciliation note."
+baseline,Registered users,682,,PROD,PRODUCTION VERIFIED,profiles — count(*),"Every account row ever created. No soft-delete column exists, so nothing is ever pruned. Includes staff accounts."
+baseline,Started ≥1 test,345,,PROD,PRODUCTION VERIFIED,test_sessions — distinct user_id,50.6% of 682.
+baseline,Completed ≥1 test,286,,PROD,PRODUCTION VERIFIED,test_sessions status='completed' — distinct user_id,41.9% of 682; 82.9% of the 345 who started.
+baseline,Returned on a second day,16,,PROD,PRODUCTION VERIFIED,daily_activity — users with ≥2 distinct activity_date,"FLOOR, not a measurement — daily_activity is written only by test submission and current-affairs completion."
+baseline,Checkout users,11,,PROD,PRODUCTION VERIFIED,payments — distinct user_id on created rows,Price-accepted purchase attempts: a created row is written server-side only after a confirmation dialog showing plan and final price.
+baseline,Checkout attempts,20,,PROD,PRODUCTION VERIFIED,"payments status='created', never completed",20 abandoned attempts. Adding the 1 completed payment gives 21 total price-accepted attempts — see the payments reconciliation.
+baseline,Genuine paying customers,1,,PROD,PRODUCTION VERIFIED,"payments — non-zero amount, status=paid","Founder-generated, not acquired. Externally-acquired paying customers = 0 (founder-confirmed)."
+baseline,All-time revenue,₹899,,PROD,PRODUCTION VERIFIED,"payments — sum(amount) = 89,900 paise",Externally-generated revenue = ₹0.
+baseline,Failed payments,0,,PROD,PRODUCTION VERIFIED,payments status='failed',Zero in 83 days. Razorpay integration is sound — this is not a payment-infrastructure problem.
+baseline,Coupon redemptions,0,,PROD,PRODUCTION VERIFIED,payments — used_coupon across every plan,"The coupon and promoter system is fully built, including per-promoter tracking, and has never been used once."
+baseline,Feedback responses,6,,PROD,PRODUCTION VERIFIED,app_feedback — count(*),0.88% of 682 users. All six are star ratings; none carries written text.
+baseline_secondary,Active today,2,,PROD,PRODUCTION VERIFIED,,Identical under UTC and IST — the Stage 2 timezone bug is real in code but is not currently distorting this figure.
+baseline_secondary,Active last 7 days,17,,PROD,PRODUCTION VERIFIED,,Identical under UTC and IST. 2.5% of 682.
+baseline_secondary,Active last 30 days,135,,PROD,PRODUCTION VERIFIED,,19.8% of 682. The 30d→7d ratio is 12.6%.
+baseline_secondary,Tests completed,462,,PROD,PRODUCTION VERIFIED,,"Terminal sessions, any score, any category."
+baseline_secondary,Tests abandoned,161,,PROD,PRODUCTION VERIFIED,,Free practice engine ONLY. Paid formats structurally cannot produce this status.
+baseline_secondary,Tests in progress,0,,PROD,PRODUCTION VERIFIED,,Dead schema — sessions are written already-final.
+baseline_secondary,Questions in bank,"49,916",,PROD,PRODUCTION VERIFIED,,Unfiltered by the questions.active soft-hide flag the student sampler actually uses — overstates the live pool.
+baseline_secondary,Average rating,4.33,,PROD,PRODUCTION VERIFIED,,n = 6. Not statistically meaningful.
+baseline_secondary,Payment records = paid,4,,PROD,PRODUCTION VERIFIED,,3 staff comps at ₹0 + 1 founder-generated ₹899.
+funnel,Visitors,DATA NOT AVAILABLE,,GAP,DATA NOT AVAILABLE,GA4/GTM only — no server-side pageview store exists,Top-of-funnel volume is unrecoverable for every historical period. The funnel below therefore starts at signup and has no true acquisition denominator.
+funnel,Signup completed,682,100%,PROD,ACTUAL,profiles,Signup itself is confirmed working — verified end-to-end during the walkthrough and by the founder. Every loss below happens after a clean registration.
+funnel,Started ≥1 test,345,50.6% of 682 | 50.6%,PROD,ACTUAL,test_sessions,The largest absolute loss in the funnel: 337 registered users never start a single test.
+funnel,Completed ≥1 test,286,82.9% of 345 | 41.9%,PROD,ACTUAL,test_sessions,"Once a user starts, they usually finish. Test-taking itself is not the problem."
+funnel,Returned on a 2nd day,16,5.6% of 286 | 2.3%,PROD,ACTUAL (FLOOR),daily_activity,Largest proportional loss: 94.4%. This is a floor — a user who logs in and reads materials without submitting a test is not counted as active at all.
+funnel,Pricing viewed,DATA NOT AVAILABLE,,GAP,DATA NOT AVAILABLE,not instrumented on the in-app PricingCards screen,The single most damaging measurement gap in the funnel: the checkout stage below has no denominator. It is unknown how many of the 682 ever saw a plan.
+funnel,Checkout started,11 people / 21 attempts,1.6% of 682,PROD,ACTUAL,payments.created,CANNOT be expressed as a percentage of the previous stage. The 11 checkout users are not known to be a subset of the 16 returners — no query has established the overlap. Nor is there a pricing-view denominator.
+funnel,Payment completed,1,9.1% of 11 people · 4.8% of 21 attempts | 0.15% of 682,PROD,ACTUAL,payments.paid,"One transaction, one plan, one buyer."
+funnel,Externally-acquired paid,0,0% of 1 | 0.00% of 682,FOUNDER,ACTUAL,founder-confirmed,"The single revenue-bearing record was founder-generated. In 83 days, nobody has discovered this product independently, valued it, and paid for it."
+funnel_caveat,Denominator rule 1,,,,CAVEAT,,"The funnel has no top. Visitor and pricing-view counts do not exist, so no stage above signup and no stage immediately above checkout can be expressed as a conversion rate."
+funnel_caveat,Denominator rule 2,,,,CAVEAT,,"Stages 2–5 (682 → 345 → 286 → 16) share a valid nested denominator: each population is a strict subset of the one above it, measured in the same tables."
+funnel_caveat,Denominator rule 3,,,,CAVEAT,,"Stage 7 (checkout) breaks the chain. The 11 checkout users are NOT established as a subset of the 16 returners. Any ""16 → 11"" arrow would be an invented relationship."
+funnel_caveat,Denominator rule 4,,,,CAVEAT,,Returner counts are a floor. daily_activity is written only by test submission and current-affairs question completion.
+funnel_caveat,Denominator rule 5,,,,CAVEAT,,"53.7% of the registered base (366 of 682) signed up within the last 30 days, so a material share of the 682 has had limited time to return at all. Retention percentages measured against the full base understate the mature-cohort rate by an unknown margin."
+signups_monthly,June 2026,19,19 / 17 days,PROD,PARTIAL MONTH,profiles.created_at,"Partial month — the platform's first signup is 14 Jun 2026, so June covers 17 days, not 30. Per day: 1.1"
+signups_monthly,July 2026,226,226 / 31 days,PROD,FULL MONTH,profiles.created_at,First full month. 6.5× June's daily rate. Per day: 7.3
+signups_monthly,August 2026,396,396 / 31 days,PROD,FULL MONTH,profiles.created_at,Best month on record. +75.2% over July (396 / 226). Per day: 12.8
+signups_monthly,September 2026,45,"partial month, cut-off 5-7 Sep",PROD,PARTIAL MONTH,profiles.created_at,"PARTIAL MONTH. The exact query cut-off date is not recorded (5–7 Sep), so the implied daily rate is a range, not a point. This is NOT a collapse — it is 5–7 days of a 30-day month. Per day: 6.4 – 9.0"
+acquisition,Signups last 30 days,366,,PROD,ACTUAL,profiles,53.7% of the entire user base
+acquisition,New paying customers last 30 days,0,0 / 366,PROD,ACTUAL,payments,0.00% conversion
+acquisition,Signups last 7 days,50,50 / 7 days = 7.1/day,PROD,ACTUAL,profiles,
+acquisition,Signups with a known acquisition source,0,0 / 682,CODE,CONFIRMED,exhaustive schema search,No utm/referrer column exists. Historical attribution is permanently unrecoverable.
+acquisition,Monthly totals vs baseline reconciliation,686 vs 682,19+226+396+45 = 686,DERIVED,DATA GAP,,"The monthly breakdown sums to 686 (19 + 226 + 396 + 45), against a stated registered-user baseline of 682. The 4-user difference is consistent with the two queries having been run on different dates — the baseline snapshot is timestamped 5 Sep 2026 19:01 IST, while the acquisition query extends to the latest available production date. The exact run timestamp of the monthly query is NOT recorded."
+acquisition_reading,Trend note 1,,,,FACT,,Acquisition grew every full month measured: 19 (17 days) → 226 → 396. August is the best month on record.
+acquisition_reading,Trend note 2,,,,FACT,,366 users signed up in the last 30 days and none of them paid.
+acquisition_reading,Trend note 3,,,,CAUTION,,September's 45 signups cover 5–7 days of a 30-day month. Reading it as a decline is a partial-period error. September must not be compared to a full month.
+acquisition_reading,Trend note 4,,,,OBSERVATION,,"Derived from the two windows (assuming both end on the same date): the last 7 days ran at 7.1 signups/day, while days 8–30 ran at 13.7/day. A single 7-day window is not a trend and this is well inside normal weekly variation for a base this size."
+acquisition_reading,Trend note 5,,,,DATA GAP,,"No weekly time series was supplied, so the 7-day observation above cannot be confirmed or dismissed. A week-by-week signup query is the cheapest way to close it."
+acquisition_reading,Trend note 6,,,,DATA GAP,,"Source attribution is absent for every one of these signups. It is not known whether August's 396 came from Instagram, Telegram, YouTube, referral, organic or direct — see Flaw #12."
+activation,Registered users,682,,PROD,ACTUAL,profiles,
+activation,Started >=1 test,345,345 / 682 = 50.6%,PROD,ACTUAL,test_sessions,
+activation,Never started a test,337,337 / 682 = 49.4%,PROD,ACTUAL,derived,Largest absolute loss in the funnel
+activation,Completed >=1 test,286,286 / 682 = 41.9%,PROD,ACTUAL,test_sessions,
+activation,Completion rate among starters,82.9%,286 / 345,DERIVED,ACTUAL,,"Once a user starts, they usually finish"
+activation,Started but never completed,59,59 / 345 = 17.1%,DERIVED,ACTUAL,,
+activation_kpi,Signup → first test start,50.6%,345 / 682,,KPI,,Target: BASELINE FIRST — TARGET TO BE SET AFTER EXPERIMENT
+activation_kpi,Signup → first test completion,41.9%,286 / 682,,KPI,,Target: BASELINE FIRST — TARGET TO BE SET AFTER EXPERIMENT
+activation_kpi,Median time signup → first test start,DATA NOT AVAILABLE,requires min(test_sessions.started_at) − profiles.created_at per user,,KPI,,"Target: Instrument, then baseline"
+retention,Returners / test-completers,5.6%,16 / 286,PROD,ACTUAL (FLOOR),daily_activity,"The honest activation-conditioned rate: of users who actually completed a test, 5.6% came back on another day."
+retention,Returners / all registered,2.3%,16 / 682,PROD,ACTUAL (FLOOR),daily_activity,"The whole-base rate. Lower, because it includes 337 users who never started a test and so were never in a position to return."
+retention,Never returned / completers,94.4%,270 / 286,PROD,ACTUAL (FLOOR),daily_activity,The largest proportional loss anywhere in the funnel.
+retention,Active last 30 days,19.8%,135 / 682,PROD,ACTUAL (FLOOR),daily_activity,
+retention,Active last 7 days,2.5%,17 / 682,PROD,ACTUAL (FLOOR),daily_activity,
+retention,7-day / 30-day active ratio,12.6%,17 / 135,PROD,ACTUAL (FLOOR),daily_activity,A decay signal — but also consistent with a fast-growing base where recent joiners have not yet had time to return.
+retention_cohort,D1,DATA NOT AVAILABLE,,,DATA GAP,query not run,
+retention_cohort,D3,DATA NOT AVAILABLE,,,DATA GAP,query not run,
+retention_cohort,D7,DATA NOT AVAILABLE,,,DATA GAP,query not run,
+retention_cohort,D14,DATA NOT AVAILABLE,,,DATA GAP,query not run,
+retention_cohort,D30,DATA NOT AVAILABLE,,,DATA GAP,query not run,
+retention_caveat,Caveat 1,,,,CAVEAT,,"daily_activity is written ONLY by test submission and current-affairs question completion. A user who logs in, browses materials, reads the CA magazine or reviews bookmarks — but submits no test — is not counted as active at all. Every retention figure here is a FLOOR, not a measurement."
+retention_caveat,Caveat 2,,,,CAVEAT,,"53.7% of the base (366 of 682) registered in the last 30 days. Some of the ""never returned"" population has simply not had much time yet. Cohorted retention (D1/D3/D7/D14/D30 by signup week) is the only honest way to separate churn from immaturity, and it has not been run."
+retention_caveat,Caveat 3,,,,CAVEAT,,83 days is a short window. Some apparent decay is normal cohort maturation.
+retention_caveat,Caveat 4,,,,CAVEAT,,"The habit loop reinforces only completion. Streaks, XP and badges are written exclusively by submit_test — a user who answers 20 questions and quits earns nothing."
+revenue,All-time revenue,₹899,,PROD,,,"89,900 paise. One transaction."
+revenue,Externally-generated revenue,₹0,,FOUNDER,,,The only revenue-bearing record was founder-generated.
+revenue,Revenue per day,₹10.83,,DERIVED,,,₹899 / 83 days.
+revenue,ARPU (all registered users),₹1.32,,DERIVED,,,₹899 / 682.
+revenue,AOV,₹899,,DERIVED,,,Single transaction — AOV and revenue are the same number.
+revenue,Annualised run-rate,"≈ ₹3,953",,DERIVED,,,"₹899 / 83 × 365. SCENARIO — arithmetic on a single transaction, not a forecast."
+revenue,Refunds,0,,PROD,,,
+revenue,Failed payments,0,,PROD,,,In 83 days. The payment rail works.
+revenue,Coupon-attributed revenue,₹0,,PROD,,,Zero redemptions in 83 days.
+revenue,Revenue concentration,100%,,DERIVED,,,"One plan, one transaction, one internally-generated buyer."
+customer_segment,Total records marked paid,4,,PROD,ACTUAL,,Revenue: ₹899.
+customer_segment,Internal staff comps (₹0),3,,FOUNDER,ACTUAL,,Revenue: ₹0. Founder-confirmed team members. Recorded as premium_annual with ₹0 revenue.
+customer_segment,Founder-generated customer,1,,FOUNDER,ACTUAL,,"Revenue: ₹899. Arithmetic on aggregates: exactly one payment record carries a non-zero amount, and the founder states the single paying customer was generated internally — so that record is necessarily the one. No attempt has been made to guess which user ID it is."
+customer_segment,Founder-side referral,PENDING,,GAP,PENDING IDENTIFICATION,,PENDING IDENTIFICATION — identifiers not yet supplied by the founder.
+customer_segment,Externally-acquired paying customers,0,,FOUNDER,ACTUAL,,Revenue: ₹0. The headline metric of this audit.
+conversion_rate,All paid records / all users,0.59%,4 / 682,DERIVED,ACTUAL,payments + profiles,Sample too small for any rate to be statistically meaningful
+conversion_rate,Revenue-generating / all users,0.15%,1 / 682,DERIVED,ACTUAL,payments + profiles,Sample too small for any rate to be statistically meaningful
+conversion_rate,Externally acquired / all users,0.00%,0 / 682,DERIVED,ACTUAL,payments + profiles,Sample too small for any rate to be statistically meaningful
+conversion_rate,Paid / checkout people,9.1%,1 / 11,DERIVED,ACTUAL,payments + profiles,Sample too small for any rate to be statistically meaningful
+conversion_rate,Paid / checkout attempts,4.8%,1 / 21,DERIVED,ACTUAL,payments + profiles,Sample too small for any rate to be statistically meaningful
+conversion_rate,Paid / last-30-day signups,0.00%,0 / 366,DERIVED,ACTUAL,payments + profiles,Sample too small for any rate to be statistically meaningful
+plan,Starter (Free),₹0,"attempts=n/a, paid=n/a",CODE+PROD,,pricing constants + payments ledger,"Forever | Everyone — the acquisition tier | 50 signup credits + 10/day (1 credit per question), on-screen explanations | Credits: 50 + 10/day | RankBooster: No | Vettri: No | Mock: 1 free 200-Q mock, ever | Revenue: n/a"
+plan,Group 1 Mock Test Pack,₹399,"attempts=2, paid=0",CODE+PROD,,pricing constants + payments ledger,80 days | Group 1 aspirants | A bigger credit drip — NOT unlimited access | Credits: 50/day (vs 10) | RankBooster: No | Vettri: No | Mock: Credit-metered only | Revenue: ₹0
+plan,Vettri Nichayam (monthly),₹499,"attempts=n/a, paid=n/a",CODE+PROD,,pricing constants + payments ledger,30 days | Test-marathon users | Full Vettri / Test-Marathon bank | Credits: Unlimited within Vettri | RankBooster: No | Vettri: Yes | Mock: No | Revenue: n/a | The payments ledger records a single vettri_nichayam plan key. Whether the 4 recorded attempts split across the ₹499 monthly and ₹899 full variants is NOT established — DATA GAP.
+plan,Vettri Nichayam (full),₹899,"attempts=4, paid=1",CODE+PROD,,pricing constants + payments ledger,"60 days | Test-marathon users, better per-day rate | Full Vettri / Test-Marathon bank | Credits: Unlimited within Vettri | RankBooster: No | Vettri: Yes | Mock: No | Revenue: ₹899 | The only plan that has ever converted — and that sale was founder-generated."
+plan,Rank Booster (Group 2 / 2A),"₹1,249","attempts=3, paid=0",CODE+PROD,,pricing constants + payments ledger,"90 days | Group 2 / 2A aspirants | 23-test Group II/IIA series — a separate product from Vettri | Credits: Unlimited | RankBooster: Yes | Vettri: No | Mock: No | Revenue: ₹0 | MRP ₹1,800. Advertised as an ""Independence Day offer valid till 31 Aug 2026"" — expired, and still live. See Flaw #3."
+plan,Premium Prelims Kit,"₹1,699","attempts=12, paid=0",CODE+PROD,,pricing constants + payments ledger,"180 days | All prelims aspirants — the superset | Superset: Vettri-equivalent access AND Rank Booster included free | Credits: Unlimited | RankBooster: Yes (free) | Vettri: Yes | Mock: Yes | Revenue: ₹0 | Draws 57% of all purchase intent at the highest price point, and has converted zero times. 12 of the 20 abandonments (60%)."
+entitlement_overlap,Premium ⊇ Rank Booster,Overlap,,CODE,CONFIRMED,entitlement logic,"Buying Premium gets Rank Booster free. A user who buys Rank Booster (₹1,249) then wants Vettri must buy again; a Premium buyer (₹1,699) would have had both for ₹450 more. Nothing on the pricing screen says so."
+entitlement_overlap,Premium ⊇ Vettri,Overlap,,CODE,CONFIRMED,entitlement logic,"Same superset relationship, also unstated."
+entitlement_overlap,Vettri ⊉ Rank Booster,Trap,,CODE,CONFIRMED,entitlement logic,The most expensive non-Premium plan does NOT include the other most expensive non-Premium plan. This is the single least guessable rule in the catalogue.
+entitlement_overlap,"Mock Pack ⊉ Vettri, ⊉ Rank Booster",Trap,,CODE,CONFIRMED,entitlement logic,"The ₹399 ""Mock Test Pack"" unlocks no test bank at all — it raises the daily credit grant from 10 to 50. A buyer reasonably expects mock exams."
+entitlement_overlap,Vettri monthly vs. full,Ambiguous,,CODE,CONFIRMED,entitlement logic,₹499/30d vs ₹899/60d — the same product at two rates. The ledger appears to collapse both into one plan key.
+payments_reconciliation,"payments rows with status = created, never completed",20,,PROD,ACTUAL,payments,
+payments_reconciliation,Distinct users behind those 20 rows,11,,PROD,ACTUAL,payments,
+payments_reconciliation,Completed payment records (status = paid),4,,PROD,ACTUAL,payments,
+payments_reconciliation,— of which internal staff comps at ₹0 (founder-confirmed),3,,FOUNDER,ACTUAL,payments,
+payments_reconciliation,"— of which revenue-bearing (₹899, founder-generated)",1,,PROD + FOUNDER,ACTUAL,payments,
+payments_reconciliation,Total price-accepted checkout attempts (20 abandoned + 1 completed),21,,DERIVED,ACTUAL,payments,
+payments_reconciliation,Externally-acquired paying customers,0,,FOUNDER,ACTUAL,payments,
+checkout_abandonment_pattern,Repeat within seconds (12s and 11.7s spans),2 users / 4 attempts,,PROD,ACTUAL,payments.created_at,"Comparison-shopping at the payment window. One user opened premium_annual then vettri_nichayam 12 seconds apart — using the checkout screen to discover what the plans cost, because the pricing screen did not say. Originally read as a technical failure signature; reinterpreted after checkout was verified working."
+checkout_abandonment_pattern,"Repeat across days/weeks (59d, 16d, 13d spans)",3 users / 10 attempts,,PROD,ACTUAL,payments.created_at,Sustained interest with an unresolved objection. One user returned 5 times across 59 days and never bought.
+checkout_abandonment_pattern,"Single attempt, never returned",6 users / 6 attempts,,PROD,ACTUAL,payments.created_at,"One look, no return."
+feedback,Responses,6,6 / 682 = 0.88%,PROD,ACTUAL,app_feedback,
+feedback,Average rating,4.33,(5 + 4 + 5 + 5 + 2 + 5) / 6 = 26 / 6 = 4.33,PROD,ACTUAL,app_feedback,"n = 6, not statistically meaningful"
+feedback,Ratings received,5 4 5 5 2 5,,PROD,ACTUAL,app_feedback,
+feedback,Responses with written text,0,0 / 6,PROD,ACTUAL,app_feedback,The system holds zero words of user opinion
+feedback_distribution,5 star,4,,PROD,ACTUAL,app_feedback,
+feedback_distribution,4 star,1,,PROD,ACTUAL,app_feedback,
+feedback_distribution,3 star,0,,PROD,ACTUAL,app_feedback,
+feedback_distribution,2 star,1,,PROD,ACTUAL,app_feedback,
+feedback_distribution,1 star,0,,PROD,ACTUAL,app_feedback,
+feedback,Clarity behavioural data,DATA NOT AVAILABLE,,GAP,DATA GAP,no access in any stage,No behavioural inference in this report is drawn from Clarity
+tracking_coverage,page_view,"tracked=Yes, reliable=Yes",,CODE,OK,"GA4/GTM — every SPA route change, web + native split handled correctly",—
+tracking_coverage,sign_up,"tracked=Partial, reliable=No",,CODE,GAP,trackSignUp() — authStore.ts,"ONE call site: the password/WhatsApp-OTP path. A Google-created account fires only trackLogin(""google"") and is indistinguishable from a returning user. Every signup number in GA4/Meta undercounts by however many people use Google."
+tracking_coverage,login,"tracked=Yes, reliable=Yes",,CODE,OK,authStore.ts,—
+tracking_coverage,start_test,"tracked=Yes, reliable=Yes",,CODE,OK,quiz engine,—
+tracking_coverage,submit_test,"tracked=Yes, reliable=Yes",,CODE,OK,submit_test RPC,—
+tracking_coverage,view_result,"tracked=Yes, reliable=Yes",,CODE,OK,Result page,—
+tracking_coverage,test_abandoned,"tracked=Partial, reliable=No",,CODE,GAP,"record_abandoned_test() — one call site, free practice engine only","Mock, Vettri, Rank Booster and Test Series have no exit button and no abandon call. A rage-quit on content someone PAID for leaves zero trace. The reported 161 abandonments cover only the free engine."
+tracking_coverage,pricing_viewed,"tracked=Partial, reliable=No",,CODE,GAP,trackViewContent — Register page load and /rank-booster landing only,NOT confirmed to fire from the in-app PricingCards screen. This is why the checkout stage of the funnel has no denominator.
+tracking_coverage,checkout_started,"tracked=Yes, reliable=Yes",,CODE,OK,"PremiumCard, VettriCard, useMockPackPurchase, useRankBoosterPurchase",—
+tracking_coverage,payment_success / failed,"tracked=Yes, reliable=Yes",,CODE,OK,razorpay.ts / IAP flow — single choke-point,—
+tracking_coverage,purchase,"tracked=Yes, reliable=Yes",,CODE,OK,razorpay.ts,—
+tracking_coverage,coupon_applied,"tracked=Yes, reliable=Yes",,CODE,OK,server-validated,"coupon_viewed is not tracked separately, so it is impossible to tell whether nobody looks for a code or nobody can find one."
+tracking_coverage,subscription_renewed / expired / cancelled,"tracked=No, reliable=n/a",,CODE,GAP,not found in code,"Plan expiry is computed on read via bundleAccess(), never written as an event. Renewal and churn are therefore unmeasurable."
+tracking_coverage,utm_source / medium / campaign / referrer,"tracked=No, reliable=n/a",,CODE,GAP,nowhere — no column exists in the schema,Exhaustive schema search returned one non-match. Historical channel attribution is unrecoverable for every past period.
+tracking_coverage,Server-side pageview / visitor count,"tracked=No, reliable=n/a",,CODE,GAP,no store exists,"The funnel has no top. Visitor volume is knowable only through GA4, which cannot be joined to who actually paid."
+metric_defect,premiumActive,DEFECT,,CODE,CONFIRMED,revenue_metrics.sql,"Filters notes->>'plan' = 'premium_annual' only — 1 of 5 plans. Vettri, Rank Booster and Mock Pack customers do not count toward the founder's own headline paid figure. | Consequence: The business reads smaller to its own founder than it is. Currently masked by there being almost no customers; becomes actively misleading the moment conversion moves."
+metric_defect,Active today / Active 7d,DEFECT,,CODE,CONFIRMED,get_platform_metrics(),Filters daily_activity with a bare current_date (UTC session clock) while every write stamps activity_date in IST. | Consequence: Real in code. NOT currently distorting anything: production returned identical values under UTC and IST (2 and 17). Downgraded from the P0 assigned in Stage 2 to P3.
+metric_defect,"""Active"" itself",DEFECT,,CODE,CONFIRMED,daily_activity,"Written only by test submission and current-affairs completion. Reading materials, browsing, reviewing bookmarks — none of it counts. | Consequence: Every engagement and retention number in this report is a floor."
+metric_defect,Tests abandoned (161),DEFECT,,CODE,CONFIRMED,test_sessions.status,"Only the free practice engine can ever write this status. | Consequence: Cannot answer ""do paying customers finish what they bought."""
+metric_defect,"Total questions (49,916)",DEFECT,,CODE,CONFIRMED,questions,Unfiltered by the questions.active soft-hide flag the student-facing sampler actually applies. | Consequence: Overstates the live servable question pool by an unknown amount.
+metric_defect,passed_80_percent,DEFECT,,CODE,CONFIRMED,test_sessions column name,"The enforced attendance gate is 25%, not 80%. The name is historical. | Consequence: Anyone reading this column will misinterpret it. Registered P3 — out of scope for this dashboard, listed here for completeness."
+external_audit,URLs in sitemap.xml,5,,EXT,,,Home + /privacy + /guidelines + /payment-policy + /refund-policy. The 7 products named in the site's own JSON-LD have no pages of their own.
+external_audit,Third-party mentions / reviews for the brand,0,,EXT,,,"Brand name + ""reviews"" / ""pricing"" / ""complaint"" returns nothing about this site anywhere. The same searches surface pricing pages and comparison articles for half a dozen competitors."
+external_audit,Competing TNPSC apps outranking it,7,,EXT,,,"Testbook, Entri, Nithra, KalviApp, Yukthi, Aram, TNPSC Master."
+external_audit,"Search result for ""TNPSC group 2 test series""",Absent,,UX,,,"Veranda Race 1st, TNPSC Master 2nd. TNPSC Mentors does not appear."
+external_audit,Instagram followers,581,,EXT,,,"Bio positions the brand well and links to Telegram — the right instinct for this audience. A seed, not yet a funnel."
+external_audit,App-store listings found,0,,EXT,,,"UNCONFIRMED ABSENCE — a search did not find a listing. The codebase contains real IAP product IDs (com.tnpscmentor.app.premium90), which implies at least store registration. Awaiting founder confirmation."
+external_audit,Per-route <title> / meta description,Identical on every route,,EXT,,,Pure client-rendered SPA with no per-route server output. Every link shared on WhatsApp or Telegram unfurls as the generic homepage card.
+external_audit,Public indexable pricing page,None,,EXT,,,Pricing renders only inside the app shell — it cannot rank in search and cannot be forwarded.
+external_audit,Social proof on landing / pricing,None,,CODE,,,"LandingPage.tsx and PricingCards.tsx grepped in full: zero testimonials, ratings or user counts. Competitor TNPSC Master leads with ""10,000+ students""."
+external_audit,Frontend bundle,~221 KB gz JS + 20 KB CSS,,EXT,,,"GOOD. Hashed, cached 1yr immutable. Performance is NOT a problem — do not spend engineering time here."
+external_audit,robots.txt architecture,Correct,,EXT,,,"GOOD. Marketing site indexable, logged-in app noindexed. The judgment is sound; there is simply almost nothing behind it to index."
+external_audit,Structured data (JSON-LD),Present,,EXT,,,"GOOD. Clean EducationalOrganization + FAQPage schema, bilingual inLanguage tags. Mostly wasted, because there is one page for it to describe."
+flaw,#1 Weak value proposition & conversion experience,P0,impact/effort: see matrix,CONFIRMED,HYPOTHESIS,"Stage 1 external audit (social proof, competitor comparison) | Stage 2 codebase audit (grep of LandingPage.tsx / PricingCards.tsx) | Stage 3 production queries (payments, profiles) | First-time-user walkthrough | Final Growth Verification §1, §10, §12 | Backlog register P0-1, P0-4, P1-4, P2-5",Category: Conversion | Severity: Critical | Confidence: Medium | Funnel stage: Value discovery → Pricing → Checkout → Payment | Diagnosis: The product asks for money before it has shown anyone why the money is worth spending — and the screens that would do the persuading sit downstream of the paywall.
+flaw,#2 Confusing monetization & pricing structure,P0,impact/effort: see matrix,CONFIRMED,OBSERVATION,"Stage 2 codebase audit (pricing constants, entitlement rules, VettriSuggestModal) | Stage 3 production queries (payments grouped by plan and timestamp) | First-time-user walkthrough | Final Growth Verification §5, §6, §12 | Backlog register P0-2","Category: Monetization | Severity: Critical | Confidence: High | Funnel stage: Pricing → Checkout | Diagnosis: Five price points with genuinely non-obvious entitlement overlap, and a user was caught using the payment window itself to work out what the plans cost."
+flaw,#3 Broken / expired promotional experience,P0,impact/effort: see matrix,CONFIRMED,CONFIRMED,"Stage 2 codebase audit (pricing constants, /rank-booster component) | First-time-user walkthrough (5 Sep 2026) | Final Growth Verification §14 P0-3 | Backlog register P0-3","Category: Trust | Severity: High | Confidence: High | Funnel stage: Paid-ads landing → Pricing | Diagnosis: The one page built specifically to convert paid traffic advertises an ""offer valid till 31 Aug 2026"" — and it was still live on 5 Sep."
+flaw,#4 Poor first-time user experience,P1,impact/effort: see matrix,OBSERVED,OBSERVATION,"First-time-user walkthrough | Stage 2 codebase audit (entry modal trigger conditions) | Stage 3 production queries (profiles vs test_sessions) | Final Growth Verification §14 P1-4, P1-6 | Backlog register P1-1, P1-2, P1-3","Category: Activation | Severity: High | Confidence: Medium | Funnel stage: Onboarding → First test | Diagnosis: A new user lands in the app with no orientation, up to five modals competing for attention, and 3–4 taps between them and the only thing that delivers value."
+flaw,#5 Weak activation,P1,impact/effort: see matrix,CONFIRMED,OBSERVATION,"Stage 3 production queries (profiles, test_sessions) | First-time-user walkthrough | Final Growth Verification §1, §9 | Backlog register P1-1",Category: Activation | Severity: Critical | Confidence: High | Funnel stage: Signup → First test | Diagnosis: 337 of 682 registered users — 49.4% — have never started a single test. This is the largest absolute loss anywhere in the funnel.
+flaw,#6 Poor retention & habit formation,P1,impact/effort: see matrix,CONFIRMED,OBSERVATION,"Stage 3 production queries (daily_activity, test_sessions) | Stage 2 codebase audit (habit-loop writers, daily_activity writers) | Final Growth Verification §7, §9 | Backlog register P1-6, P2-12, and P3-5 (carried in: the brief requires partial-effort reinforcement under this flaw, and it is a retention mechanism rather than code debt)",Category: Retention | Severity: Critical | Confidence: High | Funnel stage: Test completion → Return visit | Diagnosis: 270 of 286 users who completed a test — 94.4% — never came back on a second day. Only 16 of 682 users have ever had two active days.
+flaw,#7 Weak content engagement & surfacing,P1,impact/effort: see matrix,OBSERVED,OBSERVATION,"First-time-user walkthrough | Stage 2 codebase audit (free-tier entitlements, daily_activity writers) | Backlog register P1-5, P1-7, P1-8","Category: Engagement | Severity: Medium | Confidence: Medium | Funnel stage: Daily engagement → Return visit | Diagnosis: Content that exists and would bring users back is broken, hidden or unexplained — including a broken image on the daily-return hook itself."
+flaw,#8 Extremely weak monetization performance,P0,impact/effort: see matrix,CONFIRMED,CONFIRMED,"Stage 3 production queries (payments) | Founder confirmation (staff comps, internal customer) | Final Growth Verification §1, §4, §10, §11 | Backlog register P1-9, P1-10","Category: Monetization | Severity: Critical | Confidence: High | Funnel stage: Payment (outcome) | Diagnosis: 682 users, 83 days, ₹899 of all-time revenue — and every rupee of it internally generated. Externally-acquired revenue is ₹0."
+flaw,#9 Unused conversion & recovery mechanisms,P1,impact/effort: see matrix,CONFIRMED,CONFIRMED,"Stage 3 production queries (payments created rows, timestamps, used_coupon) | Stage 2 codebase audit (coupon system, promoter tracking, absence of recovery) | First-time-user walkthrough | Final Growth Verification §6, §11 | Backlog register P1-11, P1-12","Category: Monetization | Severity: High | Confidence: High | Funnel stage: Checkout → Payment → Recovery | Diagnosis: 11 people accepted a price and did not pay, the oldest 79 days ago — and nothing follows up. A complete coupon and promoter system sits fully built and has never been used once."
+flaw,#10 Weak organic discoverability,P2,impact/effort: see matrix,CONFIRMED,CONFIRMED,"Stage 1 external audit (sitemap, metadata, search, competitors, robots.txt, structured data) | First-time-user walkthrough (search visibility) | Stage 3 production queries (signup trend, used as counterweight) | Backlog register P2-1, P2-2, P2-3","Category: Acquisition | Severity: Medium | Confidence: High | Funnel stage: Discovery | Diagnosis: Five URLs in the sitemap, zero third-party mentions anywhere, and absent from the category's primary search — a genuine weakness, but NOT the current bottleneck."
+flaw,#11 Poor public product & commercial visibility,P2,impact/effort: see matrix,CONFIRMED (pricing) · DATA GAP (app stores),CONFIRMED,"Stage 1 external audit (pricing page, store search, competitor set) | Stage 2 codebase audit (IAP product IDs, Capacitor configuration) | Final Growth Verification §17 (pending founder answers) | Backlog register P2-4, P2-6","Category: Acquisition | Severity: Medium | Confidence: Medium | Funnel stage: Discovery → Landing | Diagnosis: The price cannot be seen without signing up, and no app-store listing was found — though absence of a search result is not proof of absence."
+flaw,#12 No acquisition attribution,P1,impact/effort: see matrix,CONFIRMED,CONFIRMED,"Stage 2 codebase audit (exhaustive schema search) | Stage 3 production queries (signup trend) | Latest acquisition verification (monthly and trailing-window signups) | Final Growth Verification §3, §17 | Backlog register P2-7. PRIORITY NOTE: Stage 2 ranked this P1; the Final Verification ranked it P2. It is assigned P1 here because acquisition is now confirmed to be growing, which raises the cost of not knowing the source. The disagreement is disclosed rather than silently resolved.",Category: Measurement | Severity: High | Confidence: High | Funnel stage: Discovery → Signup (measurement across all stages) | Diagnosis: Signups grew from 19 to 226 to 396 a month — and there is no column anywhere in the schema that could say where any of them came from.
+flaw,#13 Incomplete product analytics & event tracking,P1,impact/effort: see matrix,CONFIRMED,CONFIRMED,"Stage 2 codebase audit (exhaustive call-site enumeration, revenue_metrics.sql, get_platform_metrics()) | Stage 3 production queries (timezone validation, abandonment scope) | Final Growth Verification §9, §12 | Backlog register P2-8, P2-9, P2-10, P2-12","Category: Measurement | Severity: High | Confidence: High | Funnel stage: All stages (measurement layer) | Diagnosis: The funnel has no top, no pricing-view denominator, no abandonment signal from any paid format, and a signup event that misses everyone who uses Google."
+flaw,#14 Weak customer feedback & behavioural intelligence,P2,impact/effort: see matrix,CONFIRMED,CONFIRMED,"Stage 3 production queries (app_feedback) | Latest feedback verification (individual rating values) | Stage 2 codebase audit (FeedbackModal gating, client and server) | Final Growth Verification §8, §18 | Backlog register P2-11","Category: Measurement | Severity: Medium | Confidence: High | Funnel stage: Post-activation (voice of customer) | Diagnosis: Six star ratings from 682 users, averaging 4.33 — and not one word of written feedback. There is no qualitative user data in the entire system."
+flaw_traceability,P0-1,Flaw #1,,UX + PROD,,,The product asks for money before establishing value
+flaw_traceability,P0-4,Flaw #1,,UX,,,The value moment (Revision / Insights) is discovered late and by accident
+flaw_traceability,P1-4,Flaw #1,,UX,,,"Premium upsell appears in every section, while purchase desire is zero"
+flaw_traceability,P2-5,Flaw #1,,CODE + EXT,,,No social proof anywhere on the landing or pricing surfaces
+flaw_traceability,P0-2,Flaw #2,,UX + CODE + PROD,,,The five plans are indistinguishable to a user; entitlement rules genuinely overlap
+flaw_traceability,V-2,Flaw #2,,PROD,,,premium_annual draws 57% of all purchase attempts and has converted zero times
+flaw_traceability,P0-3,Flaw #3,,CODE + UX,,,Expired offer live on the paid-ads landing page; the price does not auto-revert
+flaw_traceability,P1-1,Flaw #4,,UX + PROD,,,No orientation for a new user after signup
+flaw_traceability,P1-2,Flaw #4,,UX,,,3–4 taps to reach a test
+flaw_traceability,P1-3,Flaw #4,,UX + CODE,,,Popup overload at first run — five competing entry modals
+flaw_traceability,P1-1,Flaw #5,,PROD,,,Registration → first meaningful action is where half the base is lost
+flaw_traceability,P1-6,Flaw #6,,PROD,,,Nothing brings users back
+flaw_traceability,P3-5,Flaw #6,,CODE,,,"The habit loop ignores partial effort — streaks, XP and badges are written only by submit_test"
+flaw_traceability,P2-12,Flaw #6,,CODE,,,"daily_activity only logs test submissions, so every retention figure is a floor"
+flaw_traceability,P1-5,Flaw #7,,UX,,,Images not loading in Current Affairs
+flaw_traceability,P1-7,Flaw #7,,UX,,,Free tier under-communicated
+flaw_traceability,P1-8,Flaw #7,,UX,,,Kural of the Day has no prompt or surfacing
+flaw_traceability,P1-9,Flaw #8,,PROD,,,One real customer in 83 days; ₹899 all-time revenue
+flaw_traceability,P1-10,Flaw #8,,FOUNDER + PROD,,,"Three ""premium"" accounts are staff comps at ₹0, not customers"
+flaw_traceability,V-1,Flaw #8,,FOUNDER + PROD,,,Externally-acquired paying customers: 0 of 682
+flaw_traceability,V-7,Flaw #8,,PROD,,,366 signups in the last 30 days produced 0 new paying customers
+flaw_traceability,P1-11,Flaw #9,,PROD + UX,,,Zero coupon redemptions in 83 days; no discoverable path to a code
+flaw_traceability,P1-12,Flaw #9,,PROD,,,"20 abandoned orders from 11 identifiable people, with no recovery mechanism of any kind"
+flaw_traceability,P2-1,Flaw #10,,EXT + UX,,,Invisible in search; zero third-party mentions or reviews for the brand
+flaw_traceability,P2-2,Flaw #10,,EXT,,,Sitemap contains 5 URLs — home plus 4 legal pages
+flaw_traceability,P2-3,Flaw #10,,EXT,,,Identical title and meta description on every route
+flaw_traceability,P2-4,Flaw #11,,EXT,,,"No public, indexable pricing page — pricing renders only inside the app shell"
+flaw_traceability,P2-6,Flaw #11,,EXT + CODE,,,"No app-store presence found, despite real IAP product IDs in the codebase"
+flaw_traceability,P2-7,Flaw #12,,CODE,,,"Zero acquisition attribution — no utm_source, medium, campaign or referrer column exists anywhere in the schema"
+flaw_traceability,P2-8,Flaw #13,,CODE,,,Paid test formats cannot log abandonment — record_abandoned_test is wired only to the free practice engine
+flaw_traceability,P2-9,Flaw #13,,CODE,,,Google signups are not tracked as signups
+flaw_traceability,P2-10,Flaw #13,,CODE,,,premiumActive counts 1 of 5 plans
+flaw_traceability,P2-12,Flaw #13,,CODE,,,The active-user definition covers only test submission and current-affairs completion
+flaw_traceability,V-3,Flaw #13,,CODE,,,"Pricing views are not instrumented, so the checkout stage has no denominator"
+flaw_traceability,V-4,Flaw #13,,CODE,,,No server-side visitor or pageview store exists — the funnel has no top
+flaw_traceability,P2-11,Flaw #14,,CODE + PROD,,,"The feedback prompt is deliberately buried: once, home screen only, after 2 completed tests, non-admins only, then suppressed 3 months"
+flaw_traceability,V-5,Flaw #14,,GAP,,,Microsoft Clarity behavioural data was inaccessible across all three audit stages
+flaw_traceability,V-6,Flaw #14,,PROD,,,Zero written feedback — all six responses are ratings only
+flaw_numbers,Flaw #1: Recent signups → new paying customers,0.00%,366 → 0,,,,Weak value proposition & conversion experience
+flaw_numbers,Flaw #1: Externally-acquired paying customers,0.00%,0 / 682,,,,Weak value proposition & conversion experience
+flaw_numbers,Flaw #1: Checkout people → paid,9.1% (and that 1 was founder-generated),1 / 11,,,,Weak value proposition & conversion experience
+flaw_numbers,Flaw #1: Checkout attempts → paid,4.8%,1 / 21,,,,Weak value proposition & conversion experience
+flaw_numbers,Flaw #1: Revenue-generating customers / all users,0.15%,1 / 682,,,,Weak value proposition & conversion experience
+flaw_numbers,Flaw #1: Social-proof elements on acquisition surfaces,0,grep of LandingPage.tsx + PricingCards.tsx,,,,Weak value proposition & conversion experience
+flaw_numbers,Flaw #1: Users who reached the value moment,DATA NOT AVAILABLE,no feature-usage event exists,,,,Weak value proposition & conversion experience
+flaw_numbers,Flaw #2: Paid price points,5,"₹399 · ₹499 · ₹899 · ₹1,249 · ₹1,699",,,,Confusing monetization & pricing structure
+flaw_numbers,Flaw #2: Distinct plan keys in the payments ledger,4 — the two Vettri variants appear to share one key (DATA GAP),"group1_mock_pack, vettri_nichayam, rank_booster_g2, premium_annual",,,,Confusing monetization & pricing structure
+flaw_numbers,Flaw #2: premium_annual share of purchase intent,57%,12 / 21 attempts,,,,Confusing monetization & pricing structure
+flaw_numbers,Flaw #2: premium_annual conversion,0%,0 / 12,,,,Confusing monetization & pricing structure
+flaw_numbers,Flaw #2: premium_annual share of abandonments,60%,12 / 20,,,,Confusing monetization & pricing structure
+flaw_numbers,Flaw #2: Shortest cross-plan checkout span,12 seconds,"two created rows, same user, different plans",,,,Confusing monetization & pricing structure
+flaw_numbers,Flaw #2: Overall checkout conversion,4.8%,1 / 21 attempts,,,,Confusing monetization & pricing structure
+flaw_numbers,Flaw #3: Offer expiry date,31 Aug 2026,stated in page copy,,,,Broken / expired promotional experience
+flaw_numbers,Flaw #3: Date confirmed still visible,5 Sep 2026,UX walkthrough,,,,Broken / expired promotional experience
+flaw_numbers,Flaw #3: Days live past expiry,"5 days at time of discovery, and counting",31 Aug → 5 Sep,,,,Broken / expired promotional experience
+flaw_numbers,Flaw #3: Advertised price / MRP,31% claimed discount,"₹1,249 from ₹1,800",,,,Broken / expired promotional experience
+flaw_numbers,Flaw #3: Automated expiry checks in the promotional path,0,code inspection,,,,Broken / expired promotional experience
+flaw_numbers,Flaw #3: Traffic exposed to the stale offer,DATA NOT AVAILABLE,no server-side pageview store,,,,Broken / expired promotional experience
+flaw_numbers,Flaw #4: Modals able to fire on entry,5,code inspection,,,,Poor first-time user experience
+flaw_numbers,Flaw #4: Taps from entry to a started test,3–4,walkthrough count,,,,Poor first-time user experience
+flaw_numbers,Flaw #4: Users who never start a test,49.4%,337 / 682,,,,Poor first-time user experience
+flaw_numbers,Flaw #4: Users who do start,50.6%,345 / 682,,,,Poor first-time user experience
+flaw_numbers,Flaw #4: Onboarding completion rate,DATA NOT AVAILABLE,no onboarding event exists,,,,Poor first-time user experience
+flaw_numbers,Flaw #4: Drop-off point within first run,DATA NOT AVAILABLE,not instrumented,,,,Poor first-time user experience
+flaw_numbers,Flaw #5: Registered users,682,profiles,,,,Weak activation
+flaw_numbers,Flaw #5: Started ≥1 test,50.6%,345 / 682,,,,Weak activation
+flaw_numbers,Flaw #5: NEVER started a test,49.4%,337 / 682,,,,Weak activation
+flaw_numbers,Flaw #5: Completed ≥1 test,41.9%,286 / 682,,,,Weak activation
+flaw_numbers,Flaw #5: Completion rate among starters,82.9%,286 / 345,,,,Weak activation
+flaw_numbers,Flaw #5: Started but never completed,17.1%,59 / 345,,,,Weak activation
+flaw_numbers,Flaw #5: Median time signup → first test,DATA NOT AVAILABLE,not computed,,,,Weak activation
+flaw_numbers,Flaw #5: Activation by signup cohort,DATA NOT AVAILABLE,not computed,,,,Weak activation
+flaw_numbers,Flaw #6: Test-completers who returned on a 2nd day,5.6%,16 / 286,,,,Poor retention & habit formation
+flaw_numbers,Flaw #6: All registered users with 2+ active days,2.3%,16 / 682,,,,Poor retention & habit formation
+flaw_numbers,Flaw #6: Completers who NEVER returned,94.4%,270 / 286,,,,Poor retention & habit formation
+flaw_numbers,Flaw #6: Active in last 30 days,19.8%,135 / 682,,,,Poor retention & habit formation
+flaw_numbers,Flaw #6: Active in last 7 days,2.5%,17 / 682,,,,Poor retention & habit formation
+flaw_numbers,Flaw #6: 7-day / 30-day active ratio,12.6%,17 / 135,,,,Poor retention & habit formation
+flaw_numbers,Flaw #6: Base registered in the last 30 days,53.7% — the immaturity confound,366 / 682,,,,Poor retention & habit formation
+flaw_numbers,Flaw #6: D1 / D3 / D7 / D14 / D30 retention,DATA NOT AVAILABLE,query not run,,,,Poor retention & habit formation
+flaw_numbers,Flaw #7: Free tier: signup credits,"50, plus 10/day",code,,,,Weak content engagement & surfacing
+flaw_numbers,Flaw #7: Free tier: full mock exams,"1, ever",code,,,,Weak content engagement & surfacing
+flaw_numbers,Flaw #7: Free tier: attempts per topic,1 per PYQ / CA topic,code,,,,Weak content engagement & surfacing
+flaw_numbers,Flaw #7: Current Affairs image failure,Observed — scope and cause unknown,walkthrough observation,,,,Weak content engagement & surfacing
+flaw_numbers,Flaw #7: Users affected by the image issue,DATA NOT AVAILABLE,no per-feature usage data,,,,Weak content engagement & surfacing
+flaw_numbers,Flaw #7: Kural of the Day engagement,DATA NOT AVAILABLE,not instrumented,,,,Weak content engagement & surfacing
+flaw_numbers,Flaw #8: All-time revenue,₹899,"89,900 paise",,,,Extremely weak monetization performance
+flaw_numbers,Flaw #8: Externally-generated revenue,₹0,₹899 − ₹899 internal,,,,Extremely weak monetization performance
+flaw_numbers,Flaw #8: Paid records,4,payments status=paid,,,,Extremely weak monetization performance
+flaw_numbers,Flaw #8: Internal staff comps,3 (₹0),founder-confirmed,,,,Extremely weak monetization performance
+flaw_numbers,Flaw #8: Revenue-bearing customers,1 (founder-generated),non-zero amount,,,,Extremely weak monetization performance
+flaw_numbers,Flaw #8: Externally-acquired customers,0.00%,0 / 682,,,,Extremely weak monetization performance
+flaw_numbers,Flaw #8: Overall conversion (all paid records),0.59%,4 / 682,,,,Extremely weak monetization performance
+flaw_numbers,Flaw #8: Revenue-generating conversion,0.15%,1 / 682,,,,Extremely weak monetization performance
+flaw_numbers,Flaw #8: Last-30-day conversion,0.00%,0 / 366,,,,Extremely weak monetization performance
+flaw_numbers,Flaw #8: Revenue per day,₹10.83,₹899 / 83 days,,,,Extremely weak monetization performance
+flaw_numbers,Flaw #8: ARPU,₹1.32,₹899 / 682,,,,Extremely weak monetization performance
+flaw_numbers,Flaw #8: Annualised run-rate,"≈ ₹3,953 — SCENARIO, arithmetic on one transaction",₹899 / 83 × 365,,,,Extremely weak monetization performance
+flaw_numbers,Flaw #9: Abandoned payment orders,20,"status=created, never completed",,,,Unused conversion & recovery mechanisms
+flaw_numbers,Flaw #9: Distinct people behind them,11,distinct user_id,,,,Unused conversion & recovery mechanisms
+flaw_numbers,Flaw #9: Attempts per person,"5, 3, 2, 2, 2, 1, 1, 1, 1, 1, 1",distribution,,,,Unused conversion & recovery mechanisms
+flaw_numbers,Flaw #9: Oldest unresolved attempt,79 days,18 Jun → 5 Sep,,,,Unused conversion & recovery mechanisms
+flaw_numbers,Flaw #9: Recovery mechanisms in existence,0,code inspection,,,,Unused conversion & recovery mechanisms
+flaw_numbers,Flaw #9: Coupon redemptions in 83 days,0,used_coupon across all plans,,,,Unused conversion & recovery mechanisms
+flaw_numbers,Flaw #9: Coupon-attributed revenue,₹0,0 redemptions,,,,Unused conversion & recovery mechanisms
+flaw_numbers,Flaw #9: Scenario value of abandoned attempts at list price,"₹27,630 — SCENARIO ONLY, roughly 31× all-time revenue. This is expressed intent, NOT lost revenue and NOT a forecast.","12×₹1,699 + 3×₹1,249 + 3×₹899 + 2×₹399",,,,Unused conversion & recovery mechanisms
+flaw_numbers,Flaw #9: Did any of the 11 later convert?,DATA NOT AVAILABLE,query not run,,,,Unused conversion & recovery mechanisms
+flaw_numbers,Flaw #10: URLs in sitemap.xml,5,direct count,,,,Weak organic discoverability
+flaw_numbers,Flaw #10: Products named in the site's own structured data,7,JSON-LD,,,,Weak organic discoverability
+flaw_numbers,Flaw #10: Products with their own URL,0,"5 URLs, 4 of them legal",,,,Weak organic discoverability
+flaw_numbers,Flaw #10: Third-party mentions or reviews,0,web search,,,,Weak organic discoverability
+flaw_numbers,Flaw #10: Competing apps ranking on these keywords,7,search results,,,,Weak organic discoverability
+flaw_numbers,Flaw #10: Routes with unique title/meta,0,4 sampled,,,,Weak organic discoverability
+flaw_numbers,Flaw #10: Organic sessions,DATA NOT AVAILABLE,no server-side pageview store; no attribution,,,,Weak organic discoverability
+flaw_numbers,"Flaw #11: Public, indexable pricing pages",0 — CONFIRMED,sitemap + direct check,,,,Poor public product & commercial visibility
+flaw_numbers,Flaw #11: App-store listings found,0 found — UNCONFIRMED ABSENCE,store search,,,,Poor public product & commercial visibility
+flaw_numbers,Flaw #11: IAP product IDs present in the codebase,Real store product IDs present,code inspection,,,,Poor public product & commercial visibility
+flaw_numbers,Flaw #11: Competitors with public pricing,All checked,competitor set,,,,Poor public product & commercial visibility
+flaw_numbers,Flaw #11: App install count,DATA NOT AVAILABLE,no listing located; founder not yet answered,,,,Poor public product & commercial visibility
+flaw_numbers,Flaw #12: Attribution columns in the schema,0,exhaustive grep,,,,No acquisition attribution
+flaw_numbers,Flaw #12: Signups with a known source,0.00%,0 / 682,,,,No acquisition attribution
+flaw_numbers,"Flaw #12: August signups, unattributed",100%,396 / 396,,,,No acquisition attribution
+flaw_numbers,"Flaw #12: Last-30-day signups, unattributed",100%,366 / 366,,,,No acquisition attribution
+flaw_numbers,Flaw #12: Channel-level conversion rates,DATA NOT AVAILABLE,no channel data exists,,,,No acquisition attribution
+flaw_numbers,Flaw #12: CAC by channel,DATA NOT AVAILABLE,"no channel data, no spend data",,,,No acquisition attribution
+flaw_numbers,Flaw #12: Historical attribution recoverable?,NO — permanently unrecoverable,the data was never captured,,,,No acquisition attribution
+flaw_numbers,Flaw #13: Funnel stages with no data at all,2,"visitors, pricing views",,,,Incomplete product analytics & event tracking
+flaw_numbers,Flaw #13: Paid formats able to log abandonment,0 of 4,"Mock, Vettri, Rank Booster, Test Series",,,,Incomplete product analytics & event tracking
+flaw_numbers,Flaw #13: Authentication paths firing a signup event,1 of 2,"password/OTP yes, Google no",,,,Incomplete product analytics & event tracking
+flaw_numbers,Flaw #13: Plans counted by premiumActive,1 of 5,premium_annual only,,,,Incomplete product analytics & event tracking
+flaw_numbers,Flaw #13: Events writing daily_activity,2,"test submission, CA completion",,,,Incomplete product analytics & event tracking
+flaw_numbers,Flaw #13: Subscription lifecycle events,0,code search,,,,Incomplete product analytics & event tracking
+flaw_numbers,"Flaw #13: Reported abandonments, and their true scope","161 — a lower bound on one engine, not a rate","161 rows, free engine only",,,,Incomplete product analytics & event tracking
+flaw_numbers,Flaw #13: Checkout conversion rate from pricing views,DATA NOT AVAILABLE,no denominator exists,,,,Incomplete product analytics & event tracking
+flaw_numbers,Flaw #14: Feedback responses,6,app_feedback,,,,Weak customer feedback & behavioural intelligence
+flaw_numbers,Flaw #14: Response rate,0.88%,6 / 682,,,,Weak customer feedback & behavioural intelligence
+flaw_numbers,Flaw #14: Ratings received,"5, 4, 5, 5, 2, 5",raw values,,,,Weak customer feedback & behavioural intelligence
+flaw_numbers,Flaw #14: Average rating,"4.33 — n = 6, not statistically meaningful",26 / 6,,,,Weak customer feedback & behavioural intelligence
+flaw_numbers,Flaw #14: Rating distribution,5★ ×4 · 4★ ×1 · 3★ ×0 · 2★ ×1 · 1★ ×0,counts,,,,Weak customer feedback & behavioural intelligence
+flaw_numbers,Flaw #14: Responses with written text,0,0 / 6,,,,Weak customer feedback & behavioural intelligence
+flaw_numbers,Flaw #14: Users excluded by the 2-test gate,396 users can never have seen the prompt,682 − 286 completers,,,,Weak customer feedback & behavioural intelligence
+flaw_numbers,Flaw #14: Clarity behavioural data,DATA NOT AVAILABLE,no access in any stage,,,,Weak customer feedback & behavioural intelligence
+priority_matrix,#1 Weak value proposition & conversion experience,P0,"impact=5, effort=4",,,,Highest expected impact; effort is real because it is a sequencing change across the first session and the upsell trigger.
+priority_matrix,#2 Confusing monetization & pricing structure,P0,"impact=5, effort=2",,,,"Copy, a comparison surface and a default recommendation. No pricing change."
+priority_matrix,#3 Broken / expired promotional experience,P0,"impact=3, effort=1",,,,A constant and an expiry check. The cheapest item in the report.
+priority_matrix,#4 Poor first-time user experience,P1,"impact=4, effort=3",,,,Modal arbitration plus a re-thought first screen.
+priority_matrix,#5 Weak activation,P1,"impact=5, effort=3",,,,Largest absolute loss in the funnel; the fix overlaps heavily with #4.
+priority_matrix,#6 Poor retention & habit formation,P1,"impact=5, effort=4",,,,"Largest proportional loss; requires a measurement change and a product change, carefully sequenced."
+priority_matrix,#7 Weak content engagement & surfacing,P1,"impact=3, effort=2",,,,A bug fix and two surfacing changes.
+priority_matrix,#8 Extremely weak monetization performance,P0,"impact=5, effort=inherited",,,,"OUTCOME METRIC. No independent effort — it moves when #1, #2, #3 and #9 move. Plotted on impact only."
+priority_matrix,#9 Unused conversion & recovery mechanisms,P1,"impact=4, effort=2",,,,"Recovery tracking, a coupon entry surface, and a recruitment problem that needs no code."
+priority_matrix,#10 Weak organic discoverability,P2,"impact=4, effort=4",,,,"High ceiling, long horizon, and explicitly not the current bottleneck."
+priority_matrix,#11 Poor public product & commercial visibility,P2,"impact=3, effort=2",,,,Effort estimate is conditional on the unanswered app-store question.
+priority_matrix,#12 No acquisition attribution,P1,"impact=4, effort=2",,,,"Small build, permanently compounding value. Every day of delay is another day of unrecoverable history."
+priority_matrix,#13 Incomplete product analytics & event tracking,P1,"impact=4, effort=3",,,,Mostly trivial items plus one real piece of work (paid-format abandon beacon). Gates the evaluation of Phase 1.
+priority_matrix,#14 Weak customer feedback & behavioural intelligence,P2,"impact=3, effort=1",,,,A form redesign and a gating change.
+verification_finding,V-1,Flaw #8,,,,,Externally-acquired paying customers: 0 of 682. The single revenue-bearing record was founder-generated.
+verification_finding,V-2,Flaw #2,,,,,premium_annual draws 57% of all purchase intent (12 of 21 attempts) and has converted zero times.
+verification_finding,V-3,Flaw #13,,,,,"Pricing views are not instrumented on PricingCards, so the checkout funnel stage has no denominator."
+verification_finding,V-4,Flaw #13,,,,,No server-side visitor or pageview store exists — the funnel has no top.
+verification_finding,V-5,Flaw #14,,,,,Microsoft Clarity behavioural data was inaccessible across all three audit stages.
+verification_finding,V-6,Flaw #14,,,,,Zero written feedback — all six responses are ratings only.
+verification_finding,V-7,Flaw #8,,,,,366 signups in the last 30 days produced 0 new paying customers.
+out_of_scope_p3,P3-1,EXCLUDED,,,P3 — OUT OF SCOPE,,"superadmin_revoke_rank_booster() writes status='revoked', which the payments check constraint forbids. Will throw the first time it is used in a refund dispute."
+out_of_scope_p3,P3-2,EXCLUDED,,,P3 — OUT OF SCOPE,,"Active-today timezone mismatch — real in code, currently harmless. Production returned identical UTC and IST values. Downgraded from the P0 assigned in Stage 2."
+out_of_scope_p3,P3-3,EXCLUDED,,,P3 — OUT OF SCOPE,,passed_80_percent is misnamed — the enforced attendance gate is 25%.
+out_of_scope_p3,P3-4,EXCLUDED,,,P3 — OUT OF SCOPE,,in_progress is dead schema — 0 rows; sessions are written already-final.
+out_of_scope_p3,P3-5,EXCLUDED,,,P3 — OUT OF SCOPE,,Habit loop ignores partial effort. CARRIED IN to Flaw #6 at the brief's explicit request.
+out_of_scope_p3,P3-6,EXCLUDED,,,P3 — OUT OF SCOPE,,README contradicts production reality (states Supabase Cloud; production is self-hosted).
+closed_hypothesis,Broken checkout,CLOSED,,,DISPROVED,,Tested to the final payment step on a real device — works correctly. This was the leading hypothesis going into Stage 3 and it failed.
+closed_hypothesis,Signup friction,CLOSED,,,DISPROVED,,Verified working by walkthrough and founder. The 337 activation loss occurs after a clean registration.
+closed_hypothesis,Payment infrastructure,CLOSED,,,DISPROVED,,"Zero failed payments in 83 days. HMAC verification, idempotency and server-side re-fetch are sound."
+closed_hypothesis,Frontend performance,CLOSED,,,DISPROVED,,"~221 KB gzipped JS + 20 KB CSS, hashed and immutably cached. Measured directly."
+closed_hypothesis,Consent gating suppressing analytics,CLOSED,,,DISPROVED,,The banner was removed by product decision; trackers now fire for ~100% of web sessions.
+closed_hypothesis,"""The free tier is too generous""",CLOSED,,,DISPROVED,,"Never supported by evidence. The walkthrough took two full tests and still felt no urge to upgrade — absent value perception, not excess generosity."
+closed_hypothesis,Paying users are 8× more engaged,CLOSED,,,DISPROVED,,RETRACTED. The comparison measured staff accounts building and testing the product.
+user_journey,DISCOVERY,UNKNOWN,,,,[EXT] 5 URLs · 0 mentions · 7 rivals ranking · [CODE] no UTM column anywhere,"Current: Almost entirely non-organic. 5 sitemap URLs, zero third-party mentions, no app-store listing found, brand absent from the category's primary search. | Problem: No compounding discovery surface exists. Every acquired user arrives through a channel nobody can name. | Metric: DATA NOT AVAILABLE — no visitor store, no attribution | Fix: Per-product indexable landing pages; capture first-touch source at signup. | Flaws: #10 #11 #12"
+user_journey,LANDING,UNKNOWN,,,,[EXT] identical <title> on 4 sampled routes · [CODE] zero testimonial/rating/user-count text in LandingPage.tsx,"Current: One client-rendered page carrying 7 keyword intents. Identical title/meta on every route. No social proof. | Problem: Nothing is shareable as itself, and there is no proof-of-scale at the moment of first impression. | Metric: DATA NOT AVAILABLE — landing-page views not stored server-side | Fix: Per-route SSR/prerendered meta; state a real number (682 aspirants already practising). | Flaws: #1 #10 #11"
+user_journey,SIGNUP,NONE,,,,[UX][FOUNDER] verified working · [PROD] 682 accounts created,Current: Works cleanly. Confirmed end-to-end by walkthrough and by the founder. | Problem: None. This stage is CLOSED — do not spend effort here. | Metric: 682 signups · 366 in the last 30 days · 50 in the last 7 | Fix: Only instrumentation: fire trackSignUp() on the Google path too. | Flaws: #13
+user_journey,ONBOARDING,MAJOR,,,,"[UX] ""When entered the application, I don't know what is so necessary and what should I do now"" · ""felt like there is too many pop up when entering the app"" · [CODE] 5 competing entry modals","Current: Signup lands the user in an app with no orientation. Up to five modals compete on entry: onboarding tour, starter-test prompt, push primer, marathon free alert, update prompt. | Problem: The user does not know what to do next, and is asked to dismiss things before they have done anything. | Metric: DATA NOT AVAILABLE — no onboarding-completion event | Fix: One question (which exam?), then one action (start this test). Sequence or suppress every other modal. | Flaws: #4 #5"
+user_journey,FIRST TEST,LARGEST ABSOLUTE,,,,[PROD] 345 / 682 started · [UX] tap count measured during walkthrough,Current: 3–4 taps from entry to a test. 345 of 682 users ever reach one. | Problem: THE LARGEST ABSOLUTE LEAK. 337 registered users never start a single test. | Metric: 50.6% start rate (345 / 682) · 49.4% never start | Fix: One-tap first test from the post-signup screen. | Flaws: #4 #5
+user_journey,RESULT,MINOR,,,,[PROD] 286 / 345,"Current: Works. 286 of the 345 starters complete (82.9%). | Problem: Not the bottleneck. Once a user starts, they usually finish. | Metric: 82.9% completion among starters | Fix: None required. | Flaws: none"
+user_journey,REPEAT USE,LARGEST PROPORTIONAL,,,,[PROD] 16 users with ≥2 activity dates · [CODE] streaks/XP/badges written only by submit_test,"Current: 16 of 682 users have ever had two active days. | Problem: THE LARGEST PROPORTIONAL LEAK. 270 of 286 completers never come back. | Metric: 5.6% of completers (16 / 286) · 2.3% of all users (16 / 682) — FLOOR | Fix: A reason to return tomorrow; reward partial effort, not only completion. | Flaws: #6 #7"
+user_journey,VALUE DISCOVERY,MAJOR,,,,"[UX] ""after checking on the Revision, Insights section, I feel good"" — reached only after wandering in unprompted, and after two tests had already produced no desire to pay","Current: Revision and Insights — the screens that actually persuade — are reached late, by accident, and by almost nobody. | Problem: The persuasive moment sits downstream of the paywall instead of upstream of it. | Metric: DATA NOT AVAILABLE — no feature-usage event on Revision/Insights | Fix: Route the first session through the value moment before any upsell. | Flaws: #1 #7"
+user_journey,PRICING,UNMEASURED,,,,"[UX] ""I can't differentiate what each plan does"" · [CODE] Premium ⊇ Rank Booster, Vettri ⊉ Rank Booster, Mock Pack unlocks neither · [PROD] two plans' checkouts opened 12 seconds apart","Current: Five price points across four ledger plan keys, with genuinely non-obvious entitlement overlap. No public page. No social proof. | Problem: The user cannot tell the plans apart, and there is no view event, so nobody knows how many even get here. | Metric: DATA NOT AVAILABLE — pricing_viewed not instrumented on PricingCards | Fix: One-line differentiator per plan, a default recommendation, and a pricing_viewed event. | Flaws: #1 #2 #11 #13"
+user_journey,CHECKOUT,MAJOR,,,,"[UX] tested to the final payment step — works · [PROD] 20 created rows, oldest unresolved 79 days","Current: Works. Verified to the final payment step on a real device. 11 people, 21 price-accepted attempts. | Problem: Not a defect — a demand problem. 20 of 21 attempts are abandoned and nothing follows up. | Metric: 11 people · 21 attempts · 1 completed (9.1% of people, 4.8% of attempts) | Fix: Do not rebuild checkout. Build recovery. | Flaws: #2 #9"
+user_journey,PAYMENT,TERMINAL,,,,"[PROD] 0 failed payments · [PROD] 4 paid records, 3 staff comps at ₹0","Current: Razorpay with HMAC verification, idempotency and server-side re-fetch. Zero failures in 83 days. | Problem: None technically. Commercially: 1 transaction, ₹899, founder-generated. | Metric: ₹899 all-time · ₹0 externally generated | Fix: None to the rail. Everything upstream. | Flaws: #8"
+user_journey,RETENTION,UNMEASURED,,,,[CODE] no subscription_renewed / expired / cancelled event exists,"Current: No post-purchase loop exists to observe, because there is no paying cohort to retain. | Problem: Renewal and expiry are computed on read, never written as events — churn would be unmeasurable even if there were customers. | Metric: DATA NOT AVAILABLE | Fix: Write plan lifecycle events now, so the first real cohort is measurable from day one. | Flaws: #6 #13"
+user_journey,REFERRAL,UNUSED ASSET,,,,"[PROD] 0 redemptions in 83 days · [UX] ""Where to get the coupon codes""","Current: A complete coupon and promoter system, including per-promoter revenue tracking, fully built and never used once. | Problem: There is no discoverable path to a coupon code inside the product. | Metric: 0 redemptions · 0 coupon-attributed revenue | Fix: Surface the code entry, then recruit promoters. This is a recruitment problem, not a build. | Flaws: #9"
+root_cause,LOW REVENUE,FACT,,,FACT,,₹899 all-time · ₹0 externally generated · 0 external customers in 83 days
+root_cause,Low conversion,FACT,LOW REVENUE,,FACT,,"11 people reached checkout, 1 bought (founder-generated). 366 signups in 30 days → 0 paid."
+root_cause,Weak value perception,HYPOTHESIS,Low conversion,,HYPOTHESIS,Flaw #1,Strongest available explanation. Supported by walkthrough (n=1) and consistent with all three funnel losses — not independently verified.
+root_cause,Pricing complexity,OBSERVATION,Low conversion,,OBSERVATION,Flaw #2,Entitlement overlap is code-confirmed FACT. That it suppresses conversion is an observation supported by the 12-second cross-plan checkout.
+root_cause,Weak trust,FACT,Low conversion,,FACT,Flaw #1,"Zero testimonials, ratings or user counts anywhere on the acquisition or pricing surfaces."
+root_cause,Expired offer,FACT,Low conversion,,FACT,Flaw #3,"Offer expired 31 Aug 2026, still visible 5 Sep on the dedicated paid-ads landing page."
+root_cause,"Price resistance at ₹1,699",HYPOTHESIS,Low conversion,,HYPOTHESIS,Flaw #2,Competes with pricing complexity as the explanation for premium_annual's 0/12. The two fit the data equally well and are not separable without instrumentation or interviews.
+root_cause,Low activation,FACT,LOW REVENUE,,FACT,,337 of 682 registered users (49.4%) never start a single test.
+root_cause,Poor orientation,OBSERVATION,Low activation,,OBSERVATION,Flaw #4,"""I don't know what is so necessary and what should I do now."" Walkthrough n=1; the 337 outcome is FACT."
+root_cause,Navigation friction,OBSERVATION,Low activation,,OBSERVATION,Flaw #4,3–4 taps between entry and the only thing that delivers value.
+root_cause,Popup overload,OBSERVATION,Low activation,,OBSERVATION,Flaw #4,Five competing entry modals confirmed in code; the felt experience is walkthrough evidence.
+root_cause,Low retention,FACT,LOW REVENUE,,FACT,,270 of 286 completers (94.4%) never returned. 16 of 682 have ever had two active days.
+root_cause,Weak habit loop,OBSERVATION,Low retention,,OBSERVATION,Flaw #6,Nothing in the product creates a reason to open it tomorrow.
+root_cause,Poor content surfacing,OBSERVATION,Low retention,,OBSERVATION,Flaw #7,Current Affairs images not loading; Kural of the Day has no prompt; the free tier is under-communicated.
+root_cause,Partial effort not reinforced,FACT,Low retention,,FACT,Flaw #6,"Streaks, XP and badges are written exclusively by submit_test. Answer 20 questions and quit, earn nothing. (Registered P3-5; carried in because it is a retention mechanism, not code debt.)"
+root_cause,Measurement gaps,FACT,LOW REVENUE,,FACT,,"Several conclusions above cannot currently be confirmed or refuted, because the data to do so does not exist."
+root_cause,Attribution,FACT,Measurement gaps,,FACT,Flaw #12,No utm_source / medium / campaign / referrer column exists anywhere in the schema.
+root_cause,Event tracking,FACT,Measurement gaps,,FACT,Flaw #13,Paid-format abandonment cannot be logged; Google signups are not counted as signups; pricing views are not instrumented.
+root_cause,Feedback,FACT,Measurement gaps,,FACT,Flaw #14,"6 ratings, 0 words, from 682 users. No qualitative signal exists in the system at all."
+root_cause,Incomplete funnel,FACT,Measurement gaps,,FACT,Flaw #13,No visitor store and no pricing-view event — the funnel has neither a top nor a valid checkout denominator.
+fix_sequence,PHASE 1 — CONVERSION FOUNDATION,1,Flaw #3,,,,"Retire the expired promotional offer and make expiry automatic | Certain evidence, trivial effort, actively working against live ad traffic right now."
+fix_sequence,PHASE 1 — CONVERSION FOUNDATION,2,Flaw #2,,,,Make the plans distinguishable in five seconds | Code-confirmed entitlement overlap plus direct production evidence of comparison-shopping at the payment window.
+fix_sequence,PHASE 1 — CONVERSION FOUNDATION,3,Flaw #1,,,,"Deliver the value moment before the first upsell | Highest expected impact, lowest certainty about mechanism. Ships with instrumentation so it can be judged."
+fix_sequence,PHASE 2 — ACTIVATION,4,Flaw #4,,,,"Rebuild the first-run experience: one question, one action | Sequence the five competing entry modals; cut the tap count to the first test."
+fix_sequence,PHASE 2 — ACTIVATION,5,Flaw #5,,,,Instrument and move signup → first-test-start | The metric this phase is judged on. Baseline 50.6%.
+fix_sequence,PHASE 2 — ACTIVATION,6,Flaw #7,,,,Fix Current Affairs images and surface the free tier and Kural of the Day | A content defect sits directly on the daily-return hook.
+fix_sequence,PHASE 3 — RETENTION,7,Flaw #6,,,,"Build a return loop, and reward partial effort | Currently the habit system reinforces only completed tests."
+fix_sequence,PHASE 3 — RETENTION,8,Flaw #9,,,,"Turn on checkout recovery and make coupon codes discoverable | 11 warm, price-accepted prospects and an entire promoter system sitting unused."
+fix_sequence,PHASE 4 — MEASUREMENT,9,Flaw #13,,,,"Close the event-tracking gaps | Pricing views, paid-format abandonment, Google signups, plan lifecycle events, premiumActive across all five plans."
+fix_sequence,PHASE 4 — MEASUREMENT,10,Flaw #12,,,,Capture acquisition attribution at signup | Persist first-touch and last-touch source through signup → payment.
+fix_sequence,PHASE 4 — MEASUREMENT,11,Flaw #14,,,,"Redesign the feedback instrument to collect reasons, not only scores | 6 ratings and 0 words is not a satisfaction measurement."
+fix_sequence,PHASE 5 — ACQUISITION SCALE,12,Flaw #10,,,,"Build the organic discovery surface | Per-product indexable landing pages, per-route metadata, topic content."
+fix_sequence,PHASE 5 — ACQUISITION SCALE,13,Flaw #11,,,,"Make the product and its price publicly visible | A rankable, forwardable pricing page; confirm and complete app-store presence."
+kpi_model,Externally-acquired paying customers,0,0 / 682,,DEFINITIONAL,Flaw #8,"Target: > 0 | Period: Continuous | Criteria: One person who was not staff, not the founder, and not a founder-side referral pays real money. This is the single success criterion for the entire Phase 1 effort."
+kpi_model,Expired offers visible in production,"1 (Rank Booster, expired 31 Aug 2026)",manual + automated expiry check,,DEFINITIONAL,Flaw #3,"Target: 0 | Period: Continuous | Criteria: No offer whose deadline has passed is rendered anywhere. Enforced by an expiry check, not by a person remembering."
+kpi_model,Signup → first test start,50.6%,345 / 682,,EXPERIMENT,Flaw #5,"Target: BASELINE FIRST — TARGET TO BE SET AFTER EXPERIMENT | Period: Weekly cohort, 30 days post-change | Criteria: Measured on signup cohorts AFTER the change ships, never against the lifetime blended figure — the base is growing too fast for a blended number to move visibly."
+kpi_model,Signup → first test completion,41.9%,286 / 682,,EXPERIMENT,Flaw #5,"Target: BASELINE FIRST — TARGET TO BE SET AFTER EXPERIMENT | Period: Weekly cohort, 30 days post-change | Criteria: Same cohorting rule."
+kpi_model,D1 / D3 / D7 / D14 / D30 retention,DATA NOT AVAILABLE,requires cohorted daily_activity by signup week,,DEFINITIONAL,Flaw #6,Target: Instrumented and reported weekly | Period: From first report | Criteria: The target is the existence of the measurement. No retention percentage target can be responsibly set before the curve has been seen once.
+kpi_model,"Return rate (2+ active days, completers)",5.6%,16 / 286,,EXPERIMENT,Flaw #6,"Target: BASELINE FIRST — TARGET TO BE SET AFTER EXPERIMENT | Period: 30-day cohort | Criteria: Must be re-baselined against a broadened ""active"" definition first — the current figure is a floor, so any improvement would be partly a measurement artefact."
+kpi_model,Pricing-view → checkout-start rate,UNMEASURABLE — no pricing_viewed event,n/a,,DEFINITIONAL,Flaw #13,"Target: Measurable | Period: From instrumentation | Criteria: The checkout stage of the funnel acquires a denominator. Until then, no conversion claim about the pricing screen can be evaluated."
+kpi_model,Paid formats logging abandonment,0 of 4,"Mock, Vettri, Rank Booster, Test Series",,DEFINITIONAL,Flaw #13,"Target: 4 of 4 | Period: From instrumentation | Criteria: A quit inside paid content produces a row. Precondition for ever answering ""do paying customers finish what they bought""."
+kpi_model,premiumActive plan coverage,1 of 5 plans,revenue_metrics.sql filters plan = 'premium_annual',,DEFINITIONAL,Flaw #13,Target: 5 of 5 | Period: Immediate | Criteria: The founder's headline paid-user figure counts every paying customer.
+kpi_model,Signups carrying an acquisition source,0%,0 / 682 — no column exists,,DEFINITIONAL,Flaw #12,"Target: 100% of NEW signups | Period: From instrumentation | Criteria: Every new profile row carries first-touch source, medium, campaign, referrer and landing page, and that source survives through to the payments row. Historical attribution is unrecoverable and is not part of this target."
+kpi_model,Coupon redemptions,0,0 in 83 days,,EXPERIMENT,Flaw #9,"Target: BASELINE FIRST — TARGET TO BE SET AFTER EXPERIMENT | Period: 30 days after the code path is discoverable | Criteria: Split the metric: (a) can users find where to enter a code, (b) do promoters exist to hand codes out. Today both are zero and they are being measured as one number."
+kpi_model,Abandoned-checkout recovery rate,UNMEASURABLE — no recovery mechanism exists,n/a,,EXPERIMENT,Flaw #9,"Target: Measurable, then BASELINE FIRST | Period: 30 days after recovery ships | Criteria: A recovered payment is attributable to the recovery mechanism. NOTE: recovery is a product mechanism. No user is to be contacted as part of this audit."
+kpi_model,Feedback response rate,0.88%,6 / 682,,EXPERIMENT,Flaw #14,Target: BASELINE FIRST — TARGET TO BE SET AFTER EXPERIMENT | Period: 30 days after the prompt is redesigned | Criteria: Response rate alone is not the goal — see the next row.
+kpi_model,Feedback responses carrying written text,0,0 / 6,,DEFINITIONAL,Flaw #14,Target: > 0 | Period: 30 days after redesign | Criteria: At least one free-text answer explaining a rating. Today the system contains zero words of user opinion.
+kpi_model,Indexable product pages,5 sitemap URLs (home + 4 legal),sitemap.xml,,EXPERIMENT,Flaw #10,"Target: BASELINE FIRST — TARGET TO BE SET AFTER EXPERIMENT | Period: 90 days after publication | Criteria: Judge on organic sessions and ranked queries, not on page count. Page count is an output, not an outcome."
+plan_30_60_90,Days 1–30 — establish value and make the funnel measurable,1,,,,,"Ship Flaw #3 (expired offer) — trivial, certain, and live on the ads landing page right now."
+plan_30_60_90,Days 1–30 — establish value and make the funnel measurable,2,,,,,"Ship Flaw #2 (plan clarity) — one-line differentiators, a comparison matrix generated from the entitlement source, and a default recommendation. No price changes."
+plan_30_60_90,Days 1–30 — establish value and make the funnel measurable,3,,,,,Ship Flaw #1 (value before paywall) — route the first session through Revision/Insights and gate the upsell on a real signal.
+plan_30_60_90,Days 1–30 — establish value and make the funnel measurable,4,,,,,Ship pricing_viewed from PricingCards (part of Flaw #13). Without it none of the above can be evaluated.
+plan_30_60_90,Days 1–30 — establish value and make the funnel measurable,5,,,,,"Run the four outstanding read-only queries: cohorted retention, engagement distribution, the abandoner crossover, and the role breakdown."
+plan_30_60_90,Days 1–30 — establish value and make the funnel measurable,6,,,,,"Get the two pending founder answers: app-store publication status, and identifiers for the internal customer and founder-side referral."
+plan_30_60_90,Days 1–30 — establish value and make the funnel measurable,7,,,,,"DECISION FOR THE FOUNDER, NOT AN AUDIT ACTION: whether to ask the 11 abandoned-checkout users what stopped them. It is the fastest available route to separating plan confusion from price resistance. No user has been contacted by this audit."
+plan_30_60_90,Days 31–60 — activation and return,1,,,,,"Ship Flaw #4 (first-run experience) and Flaw #5 (activation measurement), which overlap heavily."
+plan_30_60_90,Days 31–60 — activation and return,2,,,,,"Ship Flaw #7 (Current Affairs images, free-tier communication, Kural surfacing)."
+plan_30_60_90,Days 31–60 — activation and return,3,,,,,"Ship Flaw #6 measurement first: broaden the active definition, re-baseline, and report both definitions in parallel."
+plan_30_60_90,Days 31–60 — activation and return,4,,,,,Ship Flaw #12 (attribution capture) so that any future acquisition effort is measurable. Every day of delay is another day of permanently unrecoverable history.
+plan_30_60_90,Days 31–60 — activation and return,5,,,,,"Ship the remaining Flaw #13 items: Google signup tracking, paid-format abandon beacon, premiumActive across all five plans."
+plan_30_60_90,Days 31–60 — activation and return,6,,,,,Ship Flaw #9 recovery TRACKING (not yet recovery action) and make coupon entry discoverable.
+plan_30_60_90,Days 61–90 — only if external conversion has moved off zero,1,,,,,"GATE: if externally-acquired paying customers is still 0, do not proceed to acquisition scale. Return to Phase 1 with the instrumentation that now exists and diagnose properly."
+plan_30_60_90,Days 61–90 — only if external conversion has moved off zero,2,,,,,Ship Flaw #6 product changes: the return loop and partial-effort reinforcement.
+plan_30_60_90,Days 61–90 — only if external conversion has moved off zero,3,,,,,Ship Flaw #14 (feedback redesign) and obtain Clarity access.
+plan_30_60_90,Days 61–90 — only if external conversion has moved off zero,4,,,,,"Ship Flaw #11 (public pricing page) and, conditional on the founder's answer, app-store work."
+plan_30_60_90,Days 61–90 — only if external conversion has moved off zero,5,,,,,"Begin Flaw #10 (SEO landing pages) — the longest-horizon item, deliberately last."
+plan_30_60_90,Days 61–90 — only if external conversion has moved off zero,6,,,,,"Re-run this entire verification against a real paying cohort, and finally test the activation-threshold hypothesis that has been untestable throughout."
+data_quality,WHAT WE KNOW 1,,,,KNOWN,,"Exactly how many people registered, started a test, completed a test, returned, reached checkout and paid — all from direct read-only SELECTs against production."
+data_quality,WHAT WE KNOW 2,,,,KNOWN,,"That acquisition grew every full month measured: 226 in July, 396 in August, and 366 in the last 30 days."
+data_quality,WHAT WE KNOW 3,,,,KNOWN,,That zero of those 366 recent signups paid anything.
+data_quality,WHAT WE KNOW 4,,,,KNOWN,,"That the payment rail works: 0 failures in 83 days, HMAC verification, idempotency and a server-side re-fetch before crediting."
+data_quality,WHAT WE KNOW 5,,,,KNOWN,,That signup works: verified by walkthrough and by the founder.
+data_quality,WHAT WE KNOW 6,,,,KNOWN,,That checkout works: tested to the final payment step on a real device.
+data_quality,WHAT WE KNOW 7,,,,KNOWN,,"That the five-plan entitlement overlap is real, because it was read directly in the pricing and entitlement code."
+data_quality,WHAT WE KNOW 8,,,,KNOWN,,That the promotional offer on the paid-ads landing page expired on 31 Aug 2026 and was still visible on 5 Sep.
+data_quality,WHAT WE KNOW 9,,,,KNOWN,,That no acquisition-source column exists anywhere in the schema.
+data_quality,WHAT WE KNOW 10,,,,KNOWN,,"That three of the four paid records are staff comps, and the fourth was founder-generated."
+data_quality,WHAT WE DON'T KNOW 1,,,,UNKNOWN,,"How many visitors the site gets, or ever got. There is no server-side pageview store."
+data_quality,WHAT WE DON'T KNOW 2,,,,UNKNOWN,,"Where any user came from. No UTM, medium, campaign or referrer data exists for any historical period — this is unrecoverable, not merely unqueried."
+data_quality,WHAT WE DON'T KNOW 3,,,,UNKNOWN,,How many of the 682 ever saw a pricing screen. pricing_viewed is not instrumented on PricingCards.
+data_quality,WHAT WE DON'T KNOW 4,,,,UNKNOWN,,What retention actually looks like by cohort. D1/D3/D7/D14/D30 have not been run.
+data_quality,WHAT WE DON'T KNOW 5,,,,UNKNOWN,,Whether the 11 checkout users overlap with the 16 returners.
+data_quality,WHAT WE DON'T KNOW 6,,,,UNKNOWN,,Whether any of the 11 abandoners later converted.
+data_quality,WHAT WE DON'T KNOW 7,,,,UNKNOWN,,Why users abandon paid tests — paid formats cannot log abandonment at all.
+data_quality,WHAT WE DON'T KNOW 8,,,,UNKNOWN,,What users think. Six star ratings and zero words.
+data_quality,WHAT WE DON'T KNOW 9,,,,UNKNOWN,,Anything from Microsoft Clarity — no access at any point across all three stages.
+data_quality,WHAT WE DON'T KNOW 10,,,,UNKNOWN,,Whether the app is actually published on the Play Store or App Store.
+data_quality,WHAT WE DON'T KNOW 11,,,,UNKNOWN,,How many of the 682 accounts are team accounts (beyond the 3 confirmed comps).
+data_quality,WHAT WE DON'T KNOW 12,,,,UNKNOWN,,"The exact run date of the acquisition-trend query, which is why the monthly totals sum to 686 against a 682 baseline."
+data_quality,CONFIRMED 1,,,,CONFIRMED,,0 externally-acquired paying customers in 83 days.
+data_quality,CONFIRMED 2,,,,CONFIRMED,,337 of 682 registered users (49.4%) never start a test.
+data_quality,CONFIRMED 3,,,,CONFIRMED,,270 of 286 test-completers (94.4%) never return on a second day.
+data_quality,CONFIRMED 4,,,,CONFIRMED,,20 abandoned checkouts from 11 people; the oldest unresolved for 79 days; no recovery mechanism of any kind exists.
+data_quality,CONFIRMED 5,,,,CONFIRMED,,"0 coupon redemptions in 83 days, against a fully-built promoter system."
+data_quality,CONFIRMED 6,,,,CONFIRMED,,No acquisition attribution exists anywhere in the schema.
+data_quality,CONFIRMED 7,,,,CONFIRMED,,An expired offer is live on the dedicated paid-ads landing page.
+data_quality,CONFIRMED 8,,,,CONFIRMED,,Paid test formats cannot log abandonment.
+data_quality,CONFIRMED 9,,,,CONFIRMED,,premium_annual draws 57% of all purchase attempts and has converted zero times.
+data_quality,CONFIRMED 10,,,,CONFIRMED,,Acquisition grew month over month: 19 (17 days) → 226 → 396.
+data_quality,CONFIRMED 11,,,,CONFIRMED,,"Streaks, XP and badges are written only by submit_test — partial effort earns nothing."
+data_quality,CONFIRMED 12,,,,CONFIRMED,,Zero social proof exists on the landing or pricing surfaces.
+data_quality,HYPOTHESIS 1,,,,HYPOTHESIS,,"That value is not established before the paywall is shown. This is the STRONGEST available explanation for non-payment, and it is still a hypothesis: it rests on a walkthrough of n = 1 plus consistency with all three funnel losses. It has not been independently verified."
+data_quality,HYPOTHESIS 2,,,,HYPOTHESIS,,That plan indistinguishability suppresses conversion. Supported by the walkthrough and by one user opening two plans' checkouts 12 seconds apart. Not proven.
+data_quality,HYPOTHESIS 3,,,,HYPOTHESIS,,"That price resistance at ₹1,699 explains premium_annual's 0-for-12. Competes directly with the hypothesis above; the two fit the data equally well and cannot be separated without instrumentation or user interviews."
+data_quality,HYPOTHESIS 4,,,,HYPOTHESIS,,That popup overload and tap count materially suppress activation. The 337 outcome is fact; attributing it to these specific causes is not.
+data_quality,HYPOTHESIS 5,,,,HYPOTHESIS,,That the free tier being under-communicated costs conversion. Walkthrough observation only.
+data_quality,DISPROVED: Checkout is broken,,,,DISPROVED,,Walkthrough tested it to the final payment step on a real device. It works. This was the leading hypothesis going into Stage 3 and it failed.
+data_quality,DISPROVED: Payment infrastructure is failing,,,,DISPROVED,,0 failed payments in 83 days.
+data_quality,DISPROVED: Signup friction causes the drop-off,,,,DISPROVED,,Signup verified working by walkthrough and founder. The 337 loss occurs AFTER a clean registration — which is exactly what makes it an orientation problem.
+data_quality,DISPROVED: Frontend performance is a cause,,,,DISPROVED,,"~221 KB gzipped JS, hashed and immutably cached. Measured directly."
+data_quality,DISPROVED: Consent gating suppresses analytics,,,,DISPROVED,,The banner was removed by product decision; trackers now fire for ~100% of web sessions. Stage 1's concern no longer applies.
+data_quality,DISPROVED: The free tier is too generous,,,,DISPROVED,,"The walkthrough completed two full tests and still felt no urge to upgrade. That is absent value perception, not excess generosity."
+data_quality,DISPROVED: The Active-Today timezone bug is urgent,,,,DISPROVED,,"Production returned identical values under UTC and IST (2 and 17). Real in code, currently harmless. Downgraded from P0 to P3."
+data_quality,DISPROVED: Paying users are 8× more engaged than non-payers,,,,DISPROVED,,"RETRACTED. That comparison measured staff accounts building and testing the product. It is an artifact of internal usage, not buyer behaviour, and must not be cited."
+data_gap,Visitor / top-of-funnel volume,Only prospectively,,,DATA GAP,,No server-side pageview store
+data_gap,Historical channel attribution,NO — permanently unrecoverable,,,DATA GAP,,No UTM/referrer column has ever existed
+data_gap,Pricing-page view counts,Only prospectively,,,DATA GAP,,Not instrumented on PricingCards
+data_gap,Paid-format abandonment,Only prospectively,,,DATA GAP,,record_abandoned_test is wired to the free engine only
+data_gap,D1/D3/D7/D14/D30 cohort retention,"YES — data exists, run the query",,,DATA GAP,,Query not yet run
+data_gap,Engagement distribution (is there an engaged core?),YES,,,DATA GAP,,Query not yet run
+data_gap,Whether any of the 11 abandoners later converted,YES,,,DATA GAP,,Query not yet run
+data_gap,Overlap between the 11 checkout users and the 16 returners,YES,,,DATA GAP,,Query not yet run
+data_gap,Team/staff account count within the 682,YES,,,DATA GAP,,Role-breakdown query not yet run
+data_gap,Weekly signup time series,YES,,,DATA GAP,,Only monthly totals supplied
+data_gap,Qualitative user opinion,"Only prospectively, after the feedback instrument is redesigned",,,DATA GAP,,"6 ratings, 0 written responses"
+data_gap,"Clarity behavioural data (scroll depth, rage clicks, quick-backs, device split)",YES — needs a login,,,DATA GAP,,No access in any stage
+data_gap,App-store publication status,YES — one answer,,,DATA GAP,,Awaiting founder answer
+data_gap,Identifiers for the internal customer and founder-side referral,YES,,,DATA GAP,,Awaiting founder
+data_gap,Exact run date of the acquisition-trend query,YES — re-run with a timestamp,,,DATA GAP,,Not recorded; monthly totals sum to 686 vs a 682 baseline
+evidence_tag,PROD,Production database,,,,,Measured directly in the production Postgres database through read-only SELECT statements. No write of any kind was issued.
+evidence_tag,CODE,Source code / schema,,,,,"Read from a read-only clone of the application repository, including the src/, server/ and supabase/ trees."
+evidence_tag,UX,First-time-user walkthrough,,,,,"A single guided session on a real device by a non-aspirant tester. n = 1. Strong for finding friction, weak for measuring how common it is."
+evidence_tag,EXT,External / public audit,,,,,"Public HTTP, sitemap, robots.txt, page source, search results, app-store search and social profiles. Nothing required a login."
+evidence_tag,FOUNDER,Founder-confirmed,,,,,"Stated directly by the founder — used for facts only they can supply, such as which accounts are staff."
+evidence_tag,DERIVED,Derived arithmetic,,,,,Computed in this report from tagged figures above. The calculation is always shown alongside the result.
+evidence_tag,GAP,Data not available,,,,,"The figure does not exist, or exists somewhere this audit could not reach. Never estimated, never filled in."
+methodology_source,Production database (read-only),"Read-only SELECT, snapshot 5 Sep 2026 19:01 IST + a later acquisition query",,,,"All baseline counts, funnel stages, payments ledger, plan-wise demand, retention counts, feedback ratings, acquisition trend","Limits: No writes were issued at any point. Some queries (cohort retention, engagement distribution, abandoner crossover) have not been run."
+methodology_source,Codebase (read-only clone),"Full src/, server/, supabase/ trees",,,,"Entitlement rules, pricing constants, event instrumentation, schema search, metric definitions, habit-loop writers, feedback-prompt gating",Limits: The clone reflects a point in time; production may have moved since.
+methodology_source,First-time-user walkthrough,"One guided session, real device",,,,"Orientation, tap counts, popup load, plan comprehension, value moment, coupon discoverability, Current Affairs images, checkout verification","Limits: n = 1, conducted by a non-aspirant. Exam-category comprehension findings should be explicitly discounted. Strong for existence, useless for prevalence."
+methodology_source,External / public audit,Public HTTP only,,,,"Sitemap, per-route metadata, search visibility, competitor set, app-store search, social reach, bundle size, robots.txt, structured data",Limits: A search that does not find a listing is not proof the listing does not exist.
+methodology_source,Founder-provided context,Direct statement,,,,Which paid accounts are staff; that the single revenue-bearing customer was internally generated,Limits: Identifiers for the internal customer and the founder-side referral are still pending.
+methodology_source,Microsoft Clarity,None,,,,"NOTHING — no access at any point across Stages 1, 2 or 3","Limits: Clarity is loaded as a GTM container tag rather than called from the codebase, so even its firing rules live outside the repository. No behavioural inference anywhere in this report is drawn from Clarity."
+production_safety,Assertion 1,TRUE,,,READ-ONLY,,No production code was modified.
+production_safety,Assertion 2,TRUE,,,READ-ONLY,,No production database was modified.
+production_safety,Assertion 3,TRUE,,,READ-ONLY,,"No INSERT, UPDATE, DELETE, UPSERT, MERGE, ALTER, CREATE, DROP or TRUNCATE was executed."
+production_safety,Assertion 4,TRUE,,,READ-ONLY,,"No tables, views or functions were created in production."
+production_safety,Assertion 5,TRUE,,,READ-ONLY,,No migrations were run.
+production_safety,Assertion 6,TRUE,,,READ-ONLY,,No RLS policy was changed.
+production_safety,Assertion 7,TRUE,,,READ-ONLY,,"No Supabase, Razorpay, analytics or Clarity configuration was changed."
+production_safety,Assertion 8,TRUE,,,READ-ONLY,,"No user, payment or coupon record was touched."
+production_safety,Assertion 9,TRUE,,,READ-ONLY,,"No message, email or WhatsApp was sent to any user — including the 11 abandoned-checkout prospects."
+production_safety,Assertion 10,TRUE,,,READ-ONLY,,Nothing was deployed.
+production_safety,Assertion 11,TRUE,,,READ-ONLY,,Every calculation in this dashboard was performed locally from read-only query output.
+production_safety,Assertion 12,TRUE,,,READ-ONLY,,"Where a figure was unavailable it is shown as DATA NOT AVAILABLE. No metric was estimated, interpolated or invented."
