@@ -231,7 +231,10 @@ export interface Fix {
   title: string;
   proposed: string;
   change: string[];
-  flow: string[];
+  /** Current state — confirmed findings only. */
+  before: string[];
+  /** Proposed state. */
+  after: string[];
   example: FixExample;
   outcome: string[];
   caveat?: string;

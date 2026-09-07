@@ -3,12 +3,12 @@ import { Badge, List } from '@/components/ui';
 import type { Fix, ExampleBlock, ExampleRow, Flaw } from '@/lib/types';
 
 /**
- * A fix PROPOSAL panel — what to change, how it works, one example, the result.
+ * A fix PROPOSAL panel: what to change, the before/after comparison, one
+ * example, the expected result, today's baseline and the connected flaw.
  *
  * Priority is read from the connected flaw, never stored on the fix, so the
- * audit's P0/P1/P2 assignments stay the single source of truth. Example blocks
- * are illustrative mock-ups and are labelled as such; the only measured figure
- * shown is the "Today" baseline, quoted from the audit model.
+ * audit's P0/P1/P2 assignments stay the single source of truth. `before` cites
+ * only confirmed findings; example blocks are illustrative and labelled as such.
  */
 
 function Row({ row }: { row: ExampleRow }) {
@@ -72,6 +72,20 @@ function Block({ block }: { block: ExampleBlock }) {
   );
 }
 
+/** A short arrow flow. Kept to one line per step so the change reads at a glance. */
+function Flow({ steps, tone }: { steps: string[]; tone: 'before' | 'after' }) {
+  return (
+    <div className={'ba-flow ' + tone}>
+      {steps.map((s, i) => (
+        <span key={s}>
+          <span className="ba-step">{s}</span>
+          {i < steps.length - 1 ? <span className="ba-sep" aria-hidden="true">→</span> : null}
+        </span>
+      ))}
+    </div>
+  );
+}
+
 function Part({ n, title, children }: { n: number; title: string; children: React.ReactNode }) {
   return (
     <section className="part">
@@ -84,25 +98,23 @@ function Part({ n, title, children }: { n: number; title: string; children: Reac
 export default function FixDetail({ fix, flaw }: { fix: Fix; flaw: Flaw }) {
   /* One example block is enough to make the proposal concrete. */
   const example = fix.example.blocks.slice(0, 1);
+  let n = 0;
 
   return (
     <>
-      <Part n={1} title="What to change">
+      <Part n={++n} title="What to change">
         {fix.change.map((t, i) => <p key={i}>{t}</p>)}
       </Part>
 
-      <Part n={2} title="How it should work">
-        <div className="ex-flow">
-          {fix.flow.map((s, i) => (
-            <span key={s}>
-              <span className="ex-step">{s}</span>
-              {i < fix.flow.length - 1 ? <span className="ex-sep" aria-hidden="true">→</span> : null}
-            </span>
-          ))}
-        </div>
+      <Part n={++n} title="Before">
+        <Flow steps={fix.before} tone="before" />
       </Part>
 
-      <Part n={3} title="Example">
+      <Part n={++n} title="After">
+        <Flow steps={fix.after} tone="after" />
+      </Part>
+
+      <Part n={++n} title="Example">
         <div className="ex-wrap">
           <div className="ex-tag">ILLUSTRATIVE — a mock-up, not audit data</div>
           <div className="ex-blocks">
@@ -111,17 +123,17 @@ export default function FixDetail({ fix, flaw }: { fix: Fix; flaw: Flaw }) {
         </div>
       </Part>
 
-      <Part n={4} title="Expected result">
+      <Part n={++n} title="Expected result">
         <List items={fix.outcome.slice(0, 2)} tight />
       </Part>
 
       {fix.baseline ? (
-        <Part n={5} title="Today">
+        <Part n={++n} title="Today">
           <div className="fix-baseline">{fix.baseline}</div>
         </Part>
       ) : null}
 
-      <Part n={fix.baseline ? 6 : 5} title="Connected flaw">
+      <Part n={++n} title="Connected flaw">
         <Link href={`/flaws#flaw-${flaw.id}`} className="fix-link">
           <Badge kind={flaw.priority} />
           <span>Flaw {String(flaw.id).padStart(2, '0')} — {flaw.title}</span>

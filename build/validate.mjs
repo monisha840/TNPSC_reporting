@@ -234,15 +234,27 @@ check('Each fix maps to exactly one major flaw',
   '1:1 across all 14 flaws');
 
 check('Every fix states what to change, how, an example and an outcome',
-  D.FIXES.every((f) => f.proposed && f.change.length && f.flow.length &&
+  D.FIXES.every((f) => f.proposed && f.change.length && f.before.length && f.after.length &&
     f.example.blocks.length && f.outcome.length));
 
 const fixDetail = read('dashboard/components/FixDetail.tsx');
-const FIX_PARTS = ['What to change', 'How it should work', 'Example',
+const FIX_PARTS = ['What to change', 'Before', 'After', 'Example',
   'Expected result', 'Today', 'Connected flaw'];
 const fixMissing = FIX_PARTS.filter((t) => !fixDetail.includes(`title="${t}"`));
-check('Fix panel uses the 6-section structure', fixMissing.length === 0,
-  fixMissing.length ? 'missing: ' + fixMissing.join(', ') : '6/6');
+check('Fix panel uses the 7-section before/after structure', fixMissing.length === 0,
+  fixMissing.length ? 'missing: ' + fixMissing.join(', ') : '7/7');
+
+check('Every fix has a before and an after flow',
+  D.FIXES.every((f) => Array.isArray(f.before) && f.before.length >= 2 &&
+    Array.isArray(f.after) && f.after.length >= 2),
+  '14 before/after pairs');
+
+check('Before and after actually differ',
+  D.FIXES.every((f) => f.before.join('|') !== f.after.join('|')));
+
+check('Before/after steps stay short enough to scan',
+  D.FIXES.every((f) => [...f.before, ...f.after].every((s) => s.length <= 70)),
+  'no step longer than 70 characters');
 
 check('Fix panel no longer repeats the flaw caveat',
   !fixDetail.includes('fix.caveat'),

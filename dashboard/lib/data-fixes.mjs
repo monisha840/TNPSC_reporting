@@ -8,6 +8,9 @@
  * Priority is NOT stored here — it is read from the connected flaw, so the audit's
  * own P0/P1/P2 assignments remain the single source of truth.
  *
+ * `before` describes the CURRENT state and cites only findings the audit confirmed.
+ * `after` is the proposed state.
+ *
  * Numbers inside `example` blocks are ILLUSTRATIVE mock-ups of a proposed screen.
  * They are marked as such in the UI and must never be read as audit data. Real
  * measured figures appear only in `baseline`, and are quoted from the audit model.
@@ -30,7 +33,13 @@ export const FIXES = [
       'The strongest existing value moments — Results, Revision and Insights — should be surfaced as part of the intended journey instead of being discovered by wandering.',
       'Introduce genuine social proof on the public landing and pricing surfaces.',
     ],
-    flow: ['Signup', 'First Test', 'Result', 'Insights', 'Weak Areas', 'Recommended Practice', 'Relevant Premium opportunity'],
+    before: [
+      'Signup',
+      'Home',
+      'Premium prompt in every section',
+      'Revision / Insights found only by wandering',
+    ],
+    after: ['Signup', 'First Test', 'Result', 'Insights', 'Weak Areas', 'Recommended Practice', 'Relevant Premium opportunity'],
     example: {
       caption: 'After completing a test',
       blocks: [
@@ -64,7 +73,13 @@ export const FIXES = [
       'For each plan, state plainly who it is for, what it includes, its duration and its price — and mark one as recommended.',
       'Plan entitlements themselves stay exactly as they are; only how they are explained changes.',
     ],
-    flow: ['Ask the goal', 'Recommend one plan', 'Show who it is for + what it includes', 'Allow comparison', 'Checkout'],
+    before: [
+      'Pricing screen',
+      'Five plans shown as equal choices',
+      'No recommended default',
+      'User opens two checkouts to compare',
+    ],
+    after: ['Ask the goal', 'Recommend one plan', 'Show who it is for + what it includes', 'Allow comparison', 'Checkout'],
     example: {
       caption: '"What is your goal?"',
       blocks: [
@@ -94,7 +109,12 @@ export const FIXES = [
       'When a promotion is not active, the product shows the normal price and none of the promotional messaging.',
       'No replacement discount is proposed — the correct state after expiry is simply the normal price.',
     ],
-    flow: ['Before start → normal price', 'During → promotional price + offer messaging', 'After end → normal price, messaging removed'],
+    before: [
+      '₹1,249 + "valid till 31 Aug 2026" hard-coded',
+      '31 Aug passes',
+      'Page unchanged — offer still shown',
+    ],
+    after: ['Before start: normal price', 'During window: offer price + messaging', 'After end: normal price, messaging removed'],
     example: {
       caption: 'Rank Booster',
       blocks: [
@@ -126,7 +146,15 @@ export const FIXES = [
       'Everything else that currently competes for attention on entry should wait until the user has done something.',
       'This is a sequencing change — no new features are required.',
     ],
-    flow: ['Welcome', 'Choose exam', 'Choose preparation level', 'Start first test', 'View result'],
+    before: [
+      'Signup',
+      'Home',
+      'Up to five modals compete',
+      'Navigate',
+      '3–4 taps',
+      'Test',
+    ],
+    after: ['Welcome', 'Choose exam', 'Choose preparation level', 'Start first test', 'View result'],
     example: {
       caption: 'First session',
       blocks: [
@@ -163,7 +191,13 @@ export const FIXES = [
       'Reduce the navigation between registration and that test to a single tap.',
       'Define activation explicitly as first-test-started, and report it on weekly signup cohorts rather than as a lifetime blend.',
     ],
-    flow: ['Signup', '"Take your first test"', 'Test', 'Result'],
+    before: [
+      'Signup',
+      'Home',
+      'User decides what to do next',
+      'No first action offered',
+    ],
+    after: ['Signup', '"Take your first test"', 'Test', 'Result'],
     example: {
       caption: 'Immediately after registration',
       blocks: [
@@ -193,7 +227,13 @@ export const FIXES = [
       'Acknowledge partial effort — a user who answers questions and stops should not receive nothing.',
       'Broaden what counts as "active" first, and re-baseline, so a measurement change is not mistaken for an improvement.',
     ],
-    flow: ['Today’s preparation', 'Current Affairs — 10 questions', 'Weak Area Practice — 15 questions', 'Mini Test — 20 questions', 'Daily Challenge — 10 questions'],
+    before: [
+      'Complete a test',
+      'Score shown',
+      'Nothing scheduled for tomorrow',
+      'Partial effort earns nothing',
+    ],
+    after: ['Today’s preparation', 'Current Affairs — 10 questions', 'Weak Area Practice — 15 questions', 'Mini Test — 20 questions', 'Daily Challenge — 10 questions'],
     example: {
       caption: 'On return',
       blocks: [
@@ -227,7 +267,13 @@ export const FIXES = [
       'Give Current Affairs and Kural of the Day a daily surface instead of leaving them to be found.',
       'Ensure content still reads correctly when an image fails to load.',
     ],
-    flow: ['Test completed', 'Weakest area identified', 'Recommended practice offered', 'Daily content surfaced'],
+    before: [
+      'Content exists but must be searched for',
+      'Current Affairs images fail to load',
+      'Kural of the Day unprompted',
+      'Free tier unstated',
+    ],
+    after: ['Test completed', 'Weakest area identified', 'Recommended practice offered', 'Daily content surfaced'],
     example: {
       caption: 'After a test',
       blocks: [
@@ -261,7 +307,12 @@ export const FIXES = [
       'Make the paid tier legible at the moment the user has an immediate need for it.',
       'Separate internal and comp records from real customers in reporting, so external revenue is readable at a glance.',
     ],
-    flow: ['Free experience', 'Useful result', 'Personalized insight', 'Premium opportunity'],
+    before: [
+      'Test result',
+      'Score only',
+      'Generic Premium prompt, shown everywhere',
+    ],
+    after: ['Free experience', 'Useful result', 'Personalized insight', 'Premium opportunity'],
     example: {
       caption: 'On the result screen',
       blocks: [
@@ -294,7 +345,13 @@ export const FIXES = [
       'Make coupon entry discoverable, and give the existing promoter tracking some promoters to track.',
       'Build the recovery measurement before the recovery campaign, so the first attempt can be judged.',
     ],
-    flow: ['Checkout started', 'Payment not completed', 'Controlled reminder', 'Optional second reminder', 'Recovery tracked'],
+    before: [
+      'Checkout started',
+      'Payment not completed',
+      'Nothing follows up',
+      'Oldest unresolved 79 days',
+    ],
+    after: ['Checkout started', 'Payment not completed', 'Controlled reminder', 'Optional second reminder', 'Recovery tracked'],
     example: {
       caption: 'Two reminders, maximum',
       blocks: [
@@ -327,7 +384,12 @@ export const FIXES = [
       'Make each page state what it is, who it is for, what the user can do and where to start free.',
       'Judge this work on organic sessions and ranked queries, not on the number of pages published.',
     ],
-    flow: ['/tnpsc-group-4-mock-test', '/tnpsc-group-2-mock-test', '/tnpsc-group-2a-mock-test', '/tnpsc-current-affairs', '/tnpsc-previous-year-questions', '/tnpsc-question-bank'],
+    before: [
+      'One homepage carries seven product intents',
+      '5 sitemap URLs — four are legal pages',
+      'No product page to rank or share',
+    ],
+    after: ['/tnpsc-group-4-mock-test', '/tnpsc-group-2-mock-test', '/tnpsc-group-2a-mock-test', '/tnpsc-current-affairs', '/tnpsc-previous-year-questions', '/tnpsc-question-bank'],
     example: {
       caption: 'What each page needs to answer',
       blocks: [
@@ -359,7 +421,12 @@ export const FIXES = [
       'Make pricing a public, shareable, comparable page.',
       'Resolve the open app-store question before planning any store work.',
     ],
-    flow: ['What is TNPSC Mentors?', 'Who is it for?', 'How it helps', 'What users get', 'Genuine student proof', 'Plans', 'FAQ', 'Call to action'],
+    before: [
+      'Visitor lands',
+      'Must register to see the price',
+      'Pricing renders only inside the app shell',
+    ],
+    after: ['What is TNPSC Mentors?', 'Who is it for?', 'How it helps', 'What users get', 'Genuine student proof', 'Plans', 'FAQ', 'Call to action'],
     example: {
       caption: 'Public pricing',
       blocks: [
@@ -387,7 +454,13 @@ export const FIXES = [
       'Report signups, activation and conversion by source rather than only in aggregate.',
       'Accept that historical attribution is unrecoverable and do not attempt to reconstruct it.',
     ],
-    flow: ['Source', 'Landing page', 'Signup', 'First test', 'Payment'],
+    before: [
+      'Source unknown',
+      'Signup',
+      'No link between the two',
+      'Payment',
+    ],
+    after: ['Source', 'Landing page', 'Signup', 'First test', 'Payment'],
     example: {
       caption: 'What a channel report would look like once attribution exists',
       blocks: [
@@ -412,7 +485,13 @@ export const FIXES = [
       'Close the specific known gaps: pricing views, paid-test abandonment, Google signups, plan-level conversion, and meaningful activity beyond test submission.',
       'Ship the pricing-view event first — without it, the conversion work in Phase 2 and 3 cannot be judged at all.',
     ],
-    flow: ['Landing', 'Signup Started', 'Signup Completed', 'First Test Started', 'Test Completed', 'Result Viewed', 'Revision Viewed', 'Insights Viewed', 'Premium Viewed', 'Checkout Started', 'Payment Completed'],
+    before: [
+      'Landing — no server-side store',
+      '✗ pricing views not instrumented',
+      'Checkout — no denominator',
+      'Payment',
+    ],
+    after: ['Landing', 'Signup Started', 'Signup Completed', 'First Test Started', 'Test Completed', 'Result Viewed', 'Revision Viewed', 'Insights Viewed', 'Premium Viewed', 'Checkout Started', 'Payment Completed'],
     example: {
       caption: 'Gaps this closes',
       blocks: [
@@ -443,7 +522,13 @@ export const FIXES = [
       'Reach the populations whose opinions matter most: users who never activated, never returned, or abandoned a checkout.',
       'Do not interrupt the first-time experience to do it.',
     ],
-    flow: ['Meaningful product moment', 'Rating', 'What did you like?', 'What should we improve?', 'Submit'],
+    before: [
+      'After 2 completed tests, home screen only',
+      'Star rating',
+      'Submit',
+      'No reason captured',
+    ],
+    after: ['Meaningful product moment', 'Rating', 'What did you like?', 'What should we improve?', 'Submit'],
     example: {
       caption: 'After a meaningful moment — not during onboarding',
       blocks: [

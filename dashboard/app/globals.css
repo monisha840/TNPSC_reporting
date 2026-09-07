@@ -361,6 +361,27 @@ td.k { font-weight: 600; }
 @media (max-width: 860px) { .pri-row { grid-template-columns: 30px 1fr; } .pri-row .pw { grid-column: 2; } }
 
 /* ---------- Fixes ---------- */
+/* ---------- Before / After ---------- */
+.ba-flow {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 4px 0;
+  padding: 11px 13px; border-radius: 7px; border: 1px solid var(--c-line);
+  border-left: 3px solid var(--c-neutral); background: var(--c-panel);
+}
+.ba-flow.before { border-left-color: var(--c-danger); }
+.ba-flow.after  { border-left-color: var(--c-good); }
+.ba-step {
+  display: inline-block; font-size: 11.5px; padding: 4px 10px; border-radius: 6px;
+  background: var(--c-surface); border: 1px solid var(--c-line); white-space: nowrap;
+}
+.ba-flow.before .ba-step { color: var(--c-muted); }
+.ba-flow.after  .ba-step { font-weight: 600; }
+.ba-sep { color: var(--c-faint); margin: 0 6px; font-size: 11px; }
+@media (max-width: 620px) {
+  .ba-step { white-space: normal; }
+  .ba-sep { margin: 0 4px; }
+}
+
+
 .status-chip {
   display: inline-block; font-size: 9.5px; font-weight: 700; letter-spacing: .06em;
   padding: 3px 9px; border-radius: 5px; margin-right: 9px; vertical-align: 2px;
