@@ -138,6 +138,8 @@ export interface FlawBriefMetric { label: string; value: string; sub?: string }
 
 /** Condensed presentation of the A-Q content. Adds no facts of its own. */
 export interface FlawBrief {
+  /** Indices into `evidence` — the three strongest points shown in the dashboard. */
+  evidencePick: number[];
   problem: string[];
   evidence: FlawEvidence[];
   why: string[];
@@ -236,11 +238,6 @@ export interface Fix {
   baseline?: string;
 }
 
-export interface FixStrategy {
-  journey: string[];
-  groups: { name: string; fixes: number[]; note: string }[];
-}
-
 /* ---------------------------------------------------------------- the model */
 
 export interface AuditData {
@@ -282,6 +279,5 @@ export interface AuditData {
   HANDOFF: HandoffBlock[];
   PLAN_30_60_90: PlanWindow[];
   FIXES: Fix[];
-  FIX_STRATEGY: FixStrategy;
   FIX_STATUS: { state: string; detail: string };
 }

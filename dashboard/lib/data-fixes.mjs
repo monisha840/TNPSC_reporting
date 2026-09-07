@@ -16,25 +16,6 @@
 export const FIX_STATUS = { state: 'PLANNED', detail: 'NOT IMPLEMENTED' };
 
 /* ---------------------------------------------------------------------------
- * Overall strategy — the journey the fixes are meant to build
- * ------------------------------------------------------------------------- */
-
-export const FIX_STRATEGY = {
-  journey: [
-    'ACQUIRE', 'SIGN UP', 'FIRST TEST', 'EXPERIENCE VALUE', 'UNDERSTAND WEAK AREAS',
-    'DAILY PREPARATION', 'RETURN', 'PREMIUM VALUE', 'PAY', 'REFER',
-  ],
-  groups: [
-    { name: 'Product experience', fixes: [1, 4, 5, 6, 7, 8],
-      note: 'Get the user to real value, then keep them coming back.' },
-    { name: 'Commercial / growth', fixes: [2, 3, 9, 10, 11, 12],
-      note: 'Make the offer legible, trustworthy and findable.' },
-    { name: 'Measurement', fixes: [13, 14],
-      note: 'Make the effect of everything above observable.' },
-  ],
-};
-
-/* ---------------------------------------------------------------------------
  * The 14 fix proposals
  * ------------------------------------------------------------------------- */
 

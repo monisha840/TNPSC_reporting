@@ -7,6 +7,10 @@
  * "View technical details". Nothing here overrides priority, confidence,
  * evidence status or root-cause status — those are read from the flaw itself.
  *
+ * `evidencePick` names the three strongest evidence items for the dashboard view,
+ * chosen so no headline production number is lost to trimming. The full evidence
+ * list stays in this file and in the Markdown archive.
+ *
  * Caps, per the presentation spec: problem ≤ 3 sentences · evidence ≤ 4 ·
  * why ≤ 2 · confirmed ≤ 3 · hypothesis ≤ 2 · metrics ≤ 4 · checked ≤ 4.
  */
@@ -14,6 +18,7 @@
 export default {
 
   1: {
+    evidencePick: [0,1,2],
     problem: [
       'The product asks for money before it has shown anyone why the money is worth spending.',
       'Revision and Insights — the screens that actually persuade — are reached late, by accident, and by almost nobody.',
@@ -54,6 +59,7 @@ export default {
   },
 
   2: {
+    evidencePick: [0,1,2],
     problem: [
       'There are five paid price points and the entitlement rules behind them genuinely overlap.',
       'Premium includes Rank Booster; Vettri does not; the ₹399 Mock Pack unlocks no test bank at all.',
@@ -94,6 +100,7 @@ export default {
   },
 
   3: {
+    evidencePick: [0,1,2],
     problem: [
       'The /rank-booster page — the code’s own Meta ad landing target — advertises an "Independence Day offer valid till 31 Aug 2026".',
       'It was confirmed still live on 5 Sep, five days after expiry.',
@@ -133,6 +140,7 @@ export default {
   },
 
   4: {
+    evidencePick: [0,2,3],
     problem: [
       'A new user lands with no orientation, meets up to five modals competing on entry, and is 3–4 taps from the only action that delivers value.',
       'Signup itself is confirmed working — this is what happens immediately after it.',
@@ -172,6 +180,7 @@ export default {
   },
 
   5: {
+    evidencePick: [0,1,2],
     problem: [
       'Half of everyone who registers never uses the product: 682 signed up, 345 started a test, 337 did not.',
       'Of those who do start, 82.9% finish — so the failure is entirely at the moment of starting.',
@@ -212,6 +221,7 @@ export default {
   },
 
   6: {
+    evidencePick: [0,1,2],
     problem: [
       '94.4% of users who completed a test never came back on another day, and only 16 of 682 have ever had two active days.',
       'The habit system rewards completion only — answer 20 questions and quit, and nothing is credited.',
@@ -252,6 +262,7 @@ export default {
   },
 
   7: {
+    evidencePick: [0,1,2],
     problem: [
       'Content that already exists is not doing the work it could.',
       'Current Affairs images fail to load — on the feature best suited to daily return — the free tier is under-communicated, and Kural of the Day has nothing prompting anyone to open it.',
@@ -291,6 +302,7 @@ export default {
   },
 
   8: {
+    evidencePick: [0,1,2],
     problem: [
       'Four payment records exist. Three are staff comps at ₹0 and the fourth — the only one carrying money — was founder-generated.',
       'Externally-generated revenue is ₹0.',
@@ -331,6 +343,7 @@ export default {
   },
 
   9: {
+    evidencePick: [0,1,3],
     problem: [
       'Two fully-built systems are producing nothing.',
       '20 payment orders sit at "created" from 11 people — the oldest for 79 days — and no cleanup, retry, reminder or follow-up exists.',
@@ -371,6 +384,7 @@ export default {
   },
 
   10: {
+    evidencePick: [0,1,2],
     problem: [
       'There is almost no organic path to this product: the sitemap lists five URLs, four of them legal pages, and every route returns the same title and description.',
       'A search for "TNPSC group 2 test series" does not return this brand at all.',
@@ -411,6 +425,7 @@ export default {
   },
 
   11: {
+    evidencePick: [0,1,2],
     problem: [
       'A prospective buyer cannot find out what this product costs without creating an account.',
       'Separately, no app-store listing was found — but that is a negative search result, not a confirmed absence, and the codebase contains real IAP product IDs.',
@@ -450,6 +465,7 @@ export default {
   },
 
   12: {
+    evidencePick: [0,1,2],
     problem: [
       'The one part of this business that is demonstrably working is acquisition — 19 → 226 → 396 signups by month.',
       'Nobody can say why: no utm_source, medium, campaign or referrer column exists anywhere in the schema.',
@@ -489,6 +505,7 @@ export default {
   },
 
   13: {
+    evidencePick: [0,1,3],
     problem: [
       'Several of the most important questions in this audit are unanswerable, and this flaw is why.',
       'Pricing views are not instrumented, so the checkout funnel stage has no denominator; paid formats cannot log abandonment; the signup event misses everyone who uses Google.',
@@ -528,6 +545,7 @@ export default {
   },
 
   14: {
+    evidencePick: [0,1,2],
     problem: [
       '682 users have produced 6 pieces of feedback, all star ratings, none carrying any written text.',
       'A 4.33 average from six responses identifies no feature, no friction and no reason anyone did not upgrade.',

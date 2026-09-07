@@ -6,7 +6,7 @@ import * as M from './data-metrics.mjs';
 import FLAWS_1 from './data-flaws-1.mjs';
 import FLAWS_2 from './data-flaws-2.mjs';
 import BRIEFS from './data-flaws-brief.mjs';
-import { FIXES, FIX_STRATEGY, FIX_STATUS } from './data-fixes.mjs';
+import { FIXES, FIX_STATUS } from './data-fixes.mjs';
 
 /* The A-Q audit content is authoritative and untouched. `brief` is a condensed
  * presentation of it, attached here so the source files stay byte-identical. */
@@ -456,5 +456,5 @@ export default {
   ...M,
 
   FLAWS, MATRIX, TRACEABILITY, DIAGNOSIS, CONCLUSION, HANDOFF, PLAN_30_60_90,
-  FIXES, FIX_STRATEGY, FIX_STATUS,
+  FIXES, FIX_STATUS,
 };

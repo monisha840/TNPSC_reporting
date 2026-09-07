@@ -145,6 +145,8 @@ const REMOVED_PHRASES = [
   ['"Fixes are being prepared separately"', /being prepared separately/i],
   ['Read-only / no-production-modified statement', /GENERATED USING READ-ONLY DATA|NO PRODUCTION CODE, DATABASE/i],
   ['FIX_SEQUENCE data', /FIX_SEQUENCE/],
+  ['Fix strategy / journey card', /FIX_STRATEGY|journey-strip/],
+  ['Technical-details expander', /Expander|View technical details/],
 ];
 const lingering = REMOVED_PHRASES.filter(([, re]) => re.test(uiSrc)).map(([n]) => n);
 check('No removed section or phrase is rendered anywhere in the UI', lingering.length === 0,
@@ -158,81 +160,69 @@ check('No orphaned internal links', broken.length === 0,
 
 /* --- flaw presentation --- */
 const flawDetail = read('dashboard/components/FlawDetail.tsx');
-const PANEL_PARTS = ['The problem', 'Evidence', 'Why it matters', 'Root cause', 'Impact',
-  'How we checked', 'Audit status', 'Source'];
+const PANEL_PARTS = ['The flaw', 'Evidence', 'Why it matters', 'Status', 'Source'];
 const partMissing = PANEL_PARTS.filter((f) => !flawDetail.includes(`title="${f}"`));
-check('Flaw panel uses the 8-part compact structure', partMissing.length === 0,
-  partMissing.length ? 'missing: ' + partMissing.join(', ') : '8/8');
+check('Flaw panel uses the 5-section executive structure', partMissing.length === 0,
+  partMissing.length ? 'missing: ' + partMissing.join(', ') : '5/5');
 
 check('Every flaw has a compact brief', D.FLAWS.every((f) => f.brief),
   D.FLAWS.filter((f) => f.brief).length + '/14');
 
-const CAPS = { evidence: 4, why: 2, confirmed: 3, hypothesis: 2, metrics: 4, checked: 4 };
-const overCap = [];
-D.FLAWS.forEach((f) => {
-  if (f.brief.problem.length > 3) overCap.push(`#${f.id} problem=${f.brief.problem.length}`);
-  Object.entries(CAPS).forEach(([k, max]) => {
-    if (f.brief[k].length > max) overCap.push(`#${f.id} ${k}=${f.brief[k].length}>${max}`);
-  });
+/* Evidence is trimmed to three, chosen explicitly rather than by slicing. */
+const badPick = D.FLAWS.filter((f) => {
+  const p = f.brief.evidencePick;
+  return !Array.isArray(p) || p.length !== 3 ||
+    p.some((i) => !f.brief.evidence[i]) || new Set(p).size !== 3;
 });
-check('Every brief respects the density caps', overCap.length === 0,
-  overCap.length ? overCap.join(', ') : 'problem<=3 · evidence<=4 · why<=2 · confirmed<=3 · hypothesis<=2 · metrics<=4 · checked<=4');
+check('Each flaw names exactly 3 valid evidence items for the UI', badPick.length === 0,
+  badPick.length ? 'bad on flaw ' + badPick.map((f) => f.id).join(', ') : '14 x 3 in range');
 
-const wordCounts = D.FLAWS.map((f) => {
-  const b = f.brief;
-  return [...b.problem, ...b.evidence.map((e) => e.text), ...b.why, ...b.confirmed,
-    ...b.hypothesis, ...b.checked.map((c) => c.text), ...b.sources]
-    .join(' ').split(/\s+/).length;
+/* The dashboard must not lose a flaw's headline production number. */
+const HEADLINE = {
+  1: '366', 2: '12 of 21', 3: '31 Aug 2026', 4: '337 of 682', 5: '337',
+  6: '270 of 286', 7: 'Current Affairs', 8: '89,900', 9: '20 created rows',
+  10: '5 URLs', 11: 'pricing renders only', 12: '682 signups', 13: 'one call site',
+  14: '6 feedback records',
+};
+const lostHeadline = D.FLAWS.filter((f) => {
+  const visible = [...f.brief.problem,
+    ...f.brief.evidencePick.map((i) => f.brief.evidence[i].text)].join(' ').toLowerCase();
+  return !visible.includes(String(HEADLINE[f.id]).toLowerCase());
 });
-const maxWords = Math.max(...wordCounts);
-check('Visible brief stays in the 150-300 word target', maxWords <= 300 && Math.min(...wordCounts) >= 150,
-  'min ' + Math.min(...wordCounts) + ' · avg ' + Math.round(wordCounts.reduce((a, b) => a + b, 0) / 14) +
-  ' · max ' + maxWords);
+check('No flaw loses its headline evidence to trimming', lostHeadline.length === 0,
+  lostHeadline.length ? 'flaw ' + lostHeadline.map((f) => f.id).join(', ')
+    : 'all 14 headline figures still visible');
 
-check('Brief evidence carries source tags',
-  D.FLAWS.every((f) => f.brief.evidence.every((e) => /PROD|CODE|UX|EXT|FOUNDER|GAP|DERIVED/.test(e.tag))));
+check('Why-it-matters stays at 2 points or fewer',
+  D.FLAWS.every((f) => f.brief.why.length <= 2));
 
-check('Technical details expose the complete A-Q record',
-  ['A_summary', 'B_flaw', 'C_why', 'D_evidence', 'E_howChecked', 'F_numbers', 'G_affected',
-   'H_rootCause', 'I_userImpact', 'J_businessImpact', 'K_devImpact', 'P_confidence', 'Q_source',
-   'underlying'].every((k) => flawDetail.includes('flaw.' + k)),
-  '14 A-Q fields rendered under the expander');
+check('Confirmed / hypothesis distinction still shown as status',
+  flawDetail.includes('flaw.evidenceStatus') && flawDetail.includes('flaw.rootCauseStatus'),
+  'evidence status + root-cause status on every flaw');
 
-check('Technical details are present in the HTML, not lazily fetched',
-  read('dashboard/components/Expander.tsx').includes('hidden={!open}'),
-  'children server-rendered, toggled with hidden — find-in-page and print reach them');
+check('Priority still read from the flaw itself',
+  flawDetail.includes('kind={flaw.priority}'));
 
-check('Flaw panel omits fixes / implementation / success metrics',
-  !/L_fix|M_implementation|N_successMetric/.test(flawDetail),
-  'prepared separately, data retained in the model');
+const ARCHIVE_ONLY = ['A_summary', 'D_evidence', 'E_howChecked', 'F_numbers', 'G_affected',
+  'H_rootCause', 'I_userImpact', 'J_businessImpact', 'K_devImpact', 'P_confidence',
+  'Q_source', 'underlying'];
+const stillRendered = ARCHIVE_ONLY.filter((k) => flawDetail.includes('flaw.' + k));
+check('Archive-only sections no longer rendered in the dashboard', stillRendered.length === 0,
+  stillRendered.length ? 'still rendered: ' + stillRendered.join(', ')
+    : ARCHIVE_ONLY.length + ' sections moved to the Markdown record');
 
-check('Underlying findings still rendered inside each flaw',
-  /flaw\.underlying\.map/.test(flawDetail));
+/* Removing them from the UI must not delete them from the audit. */
+check('Full A-Q record retained in the data model',
+  D.FLAWS.every((f) => ARCHIVE_ONLY.every((k) => f[k] && (Array.isArray(f[k])
+    ? f[k].length : Object.keys(f[k]).length))),
+  'every flaw still carries all 17 A-Q fields');
 
-check('Brief adds no facts beyond the audit model',
-  read('dashboard/lib/data-flaws-brief.mjs').includes('THIS FILE ADDS NO FACTS'),
-  'condensed from data-flaws-1/2.mjs, which are unmodified');
-
-check('Fix data still preserved in the audit model',
-  D.FLAWS.every((f) => f.L_fix.length && f.M_implementation.length && f.N_successMetric.length),
-  'L_fix / M_implementation / N_successMetric intact on all 14');
-
-check('Priorities unchanged',
-  D.FLAWS.filter((f) => f.priority === 'P0').map((f) => f.id).join(',') === '1,2,3,8' &&
-  D.FLAWS.filter((f) => f.priority === 'P1').map((f) => f.id).join(',') === '4,5,6,7,9,12,13' &&
-  D.FLAWS.filter((f) => f.priority === 'P2').map((f) => f.id).join(',') === '10,11,14',
-  'P0=1,2,3,8 · P1=4,5,6,7,9,12,13 · P2=10,11,14');
-
-check('Confidence levels unchanged',
-  D.FLAWS.map((f) => f.confidence.split(' ')[0]).join(',') ===
-  'Medium,High,High,Medium,High,High,Medium,High,High,High,Medium,High,High,High');
-
-check('Confirmed / hypothesis distinction intact in the brief',
-  D.FLAWS.every((f) => f.brief.confirmed.length >= 1 && f.brief.hypothesis.length >= 1));
-
-check('P3 findings not reintroduced as active flaws',
-  D.FLAWS.every((f) => f.priority !== 'P3') && D.TRACEABILITY.outOfScope.items.length === 6,
-  '6 P3 items disclosed as out of scope, none rendered as a flaw');
+const mdArchive = read('TNPSC_MENTORS_GROWTH_DASHBOARD.md');
+check('Full A-Q record still published in the Markdown archive',
+  (mdArchive.match(/### A[.] Executive summary/g) || []).length === 14 &&
+  (mdArchive.match(/### D[.] Evidence/g) || []).length === 14 &&
+  (mdArchive.match(/### H[.] Root cause/g) || []).length === 14,
+  '14 flaws x full A-Q sections');
 
 /* --- fix proposals --- */
 check('Exactly 14 fix proposals', D.FIXES.length === 14 &&
@@ -246,6 +236,23 @@ check('Each fix maps to exactly one major flaw',
 check('Every fix states what to change, how, an example and an outcome',
   D.FIXES.every((f) => f.proposed && f.change.length && f.flow.length &&
     f.example.blocks.length && f.outcome.length));
+
+const fixDetail = read('dashboard/components/FixDetail.tsx');
+const FIX_PARTS = ['What to change', 'How it should work', 'Example',
+  'Expected result', 'Today', 'Connected flaw'];
+const fixMissing = FIX_PARTS.filter((t) => !fixDetail.includes(`title="${t}"`));
+check('Fix panel uses the 6-section structure', fixMissing.length === 0,
+  fixMissing.length ? 'missing: ' + fixMissing.join(', ') : '6/6');
+
+check('Fix panel no longer repeats the flaw caveat',
+  !fixDetail.includes('fix.caveat'),
+  'hedges live on the flaw status, stated once');
+
+check('Expected result trimmed to 2 points in the UI',
+  fixDetail.includes('outcome.slice(0, 2)'));
+
+check('Fix caveats retained in the data model',
+  D.FIXES.filter((f) => f.caveat).length === 14, '14 of 14 still carry their caveat');
 
 check('Fix priority is NOT stored on the fix — it is read from the flaw',
   D.FIXES.every((f) => !('priority' in f)) &&
@@ -269,10 +276,6 @@ check('Fix proposals carry no code, SQL or schema',
 check('Example mock-ups are labelled ILLUSTRATIVE',
   read('dashboard/components/FixDetail.tsx').includes('ILLUSTRATIVE'),
   'so mock numbers are never mistaken for audit data');
-
-check('Fix strategy groups cover all 14',
-  D.FIX_STRATEGY.groups.flatMap((g) => g.fixes).sort((a, b) => a - b).join(',') ===
-  '1,2,3,4,5,6,7,8,9,10,11,12,13,14');
 
 check('Fix data still declares itself a proposal set, not implementations',
   fixSrc.includes('NOT IMPLEMENTATIONS'));

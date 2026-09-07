@@ -3,14 +3,12 @@ import { Badge, List } from '@/components/ui';
 import type { Fix, ExampleBlock, ExampleRow, Flaw } from '@/lib/types';
 
 /**
- * A fix PROPOSAL panel. Nothing here has been built.
+ * A fix PROPOSAL panel — what to change, how it works, one example, the result.
  *
  * Priority is read from the connected flaw, never stored on the fix, so the
- * audit's own P0/P1/P2 assignments stay the single source of truth.
- *
- * Everything inside an EXAMPLE block is an illustrative mock-up of a proposed
- * screen and is labelled as such — those numbers are not audit data. Measured
- * figures appear only under "Today", quoted from the audit model.
+ * audit's P0/P1/P2 assignments stay the single source of truth. Example blocks
+ * are illustrative mock-ups and are labelled as such; the only measured figure
+ * shown is the "Today" baseline, quoted from the audit model.
  */
 
 function Row({ row }: { row: ExampleRow }) {
@@ -84,18 +82,21 @@ function Part({ n, title, children }: { n: number; title: string; children: Reac
 }
 
 export default function FixDetail({ fix, flaw }: { fix: Fix; flaw: Flaw }) {
+  /* One example block is enough to make the proposal concrete. */
+  const example = fix.example.blocks.slice(0, 1);
+
   return (
     <>
-      <Part n={1} title="What we should change">
+      <Part n={1} title="What to change">
         {fix.change.map((t, i) => <p key={i}>{t}</p>)}
       </Part>
 
       <Part n={2} title="How it should work">
-        <div className="ex-flow steps">
+        <div className="ex-flow">
           {fix.flow.map((s, i) => (
             <span key={s}>
               <span className="ex-step">{s}</span>
-              {i < fix.flow.length - 1 ? <span className="ex-sep" aria-hidden="true">↓</span> : null}
+              {i < fix.flow.length - 1 ? <span className="ex-sep" aria-hidden="true">→</span> : null}
             </span>
           ))}
         </div>
@@ -103,16 +104,15 @@ export default function FixDetail({ fix, flaw }: { fix: Fix; flaw: Flaw }) {
 
       <Part n={3} title="Example">
         <div className="ex-wrap">
-          <div className="ex-tag">ILLUSTRATIVE — a mock-up of the proposed screen, not audit data</div>
-          {fix.example.caption ? <div className="ex-cap top">{fix.example.caption}</div> : null}
+          <div className="ex-tag">ILLUSTRATIVE — a mock-up, not audit data</div>
           <div className="ex-blocks">
-            {fix.example.blocks.map((b, i) => <Block key={i} block={b} />)}
+            {example.map((b, i) => <Block key={i} block={b} />)}
           </div>
         </div>
       </Part>
 
-      <Part n={4} title="Expected outcome">
-        <List items={fix.outcome} tight />
+      <Part n={4} title="Expected result">
+        <List items={fix.outcome.slice(0, 2)} tight />
       </Part>
 
       {fix.baseline ? (
@@ -121,21 +121,12 @@ export default function FixDetail({ fix, flaw }: { fix: Fix; flaw: Flaw }) {
         </Part>
       ) : null}
 
-      {fix.caveat ? (
-        <Part n={fix.baseline ? 6 : 5} title="Important">
-          <div className="fix-caveat">{fix.caveat}</div>
-        </Part>
-      ) : null}
-
-      <Part n={(fix.baseline ? 6 : 5) + (fix.caveat ? 1 : 0)} title="Connected flaw">
+      <Part n={fix.baseline ? 6 : 5} title="Connected flaw">
         <Link href={`/flaws#flaw-${flaw.id}`} className="fix-link">
           <Badge kind={flaw.priority} />
-          <span>
-            Flaw {String(flaw.id).padStart(2, '0')} — {flaw.title}
-          </span>
+          <span>Flaw {String(flaw.id).padStart(2, '0')} — {flaw.title}</span>
           <span className="fix-link-go" aria-hidden="true">→</span>
         </Link>
-        <p className="fix-oneliner">{flaw.oneLiner}</p>
       </Part>
     </>
   );
